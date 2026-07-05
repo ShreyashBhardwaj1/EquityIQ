@@ -1,0 +1,44 @@
+name: EquityIQ CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  backend-lint-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python 3.12
+      uses: actions/setup-python@v5
+      with:
+        python-format: '3.12'
+        python-version: '3.12'
+        cache: 'pip'
+        cache-dependency-path: 'backend/pyproject.toml'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e backend/.[dev]
+
+    - name: Run Ruff Lint
+      run: |
+        ruff check backend/app
+
+    - name: Run Ruff Format Check
+      run: |
+        ruff format --check backend/app
+
+    - name: Run MyPy Type Check
+      run: |
+        mypy backend/app
+
+    - name: Enforce Architecture Boundaries (Import Linter)
+      run: |
+        import-linter --config backend/.import-linter.cfg
