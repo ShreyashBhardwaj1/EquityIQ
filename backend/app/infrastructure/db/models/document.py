@@ -18,14 +18,18 @@ class DocumentORM(Base):
 
     __tablename__ = "documents"
 
-    # TODO: Add proper foreign key constraints to Workspace during the Authentication milestone
-    workspace_id: Mapped[UUID | None] = mapped_column(
-        PG_UUID(as_uuid=True), nullable=True
+    workspace_id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True),
+        ForeignKey("workspaces.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
     )
 
-    # TODO: Add proper foreign key constraints to User during the Authentication milestone
-    uploaded_by_id: Mapped[UUID | None] = mapped_column(
-        PG_UUID(as_uuid=True), nullable=True
+    uploaded_by_id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
     )
 
     company_id: Mapped[UUID] = mapped_column(

@@ -7,6 +7,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
+from app.api.v1.auth import router as auth_router
 from app.api.v1.health import router as health_router
 from app.core.config import settings
 from app.infrastructure.db.manager import db_manager
@@ -44,3 +45,4 @@ app.add_middleware(RequestLoggingMiddleware)
 
 # Include core system routers
 app.include_router(health_router, tags=["Health"])
+app.include_router(auth_router, tags=["Authentication"])

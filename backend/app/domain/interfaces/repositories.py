@@ -8,6 +8,8 @@ from uuid import UUID
 from app.domain.entities.company import Company
 from app.domain.entities.document import Document
 from app.domain.entities.financial_statement import FinancialStatement
+from app.domain.entities.user import User
+from app.domain.entities.workspace import Workspace, WorkspaceMembership
 
 
 class CompanyRepository(Protocol):
@@ -59,4 +61,52 @@ class FinancialStatementRepository(Protocol):
 
     async def save(self, statement: FinancialStatement) -> FinancialStatement:
         """Save/persist a statement entity."""
+        ...
+
+
+class UserRepository(Protocol):
+    """Abstract interface for User data persistence operations."""
+
+    async def get_by_id(self, user_id: UUID) -> User | None:
+        """Retrieve a user by their unique ID."""
+        ...
+
+    async def get_by_email(self, email: str) -> User | None:
+        """Retrieve a user by their unique email."""
+        ...
+
+    async def save(self, user: User) -> User:
+        """Save/persist a user entity."""
+        ...
+
+
+class WorkspaceRepository(Protocol):
+    """Abstract interface for Workspace data persistence operations."""
+
+    async def get_by_id(self, workspace_id: UUID) -> Workspace | None:
+        """Retrieve a workspace by its unique ID."""
+        ...
+
+    async def save(self, workspace: Workspace) -> Workspace:
+        """Save/persist a workspace entity."""
+        ...
+
+    async def list_by_user(self, user_id: UUID) -> list[Workspace]:
+        """List workspaces where the user is owner or member."""
+        ...
+
+    async def save_membership(
+        self, membership: WorkspaceMembership
+    ) -> WorkspaceMembership:
+        """Save/persist a workspace membership."""
+        ...
+
+    async def get_membership(
+        self, workspace_id: UUID, user_id: UUID
+    ) -> WorkspaceMembership | None:
+        """Retrieve a membership relation."""
+        ...
+
+    async def delete_membership(self, workspace_id: UUID, user_id: UUID) -> None:
+        """Delete a membership relation."""
         ...

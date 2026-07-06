@@ -16,6 +16,8 @@ from app.domain.interfaces.repositories import (
     CompanyRepository,
     DocumentRepository,
     FinancialStatementRepository,
+    UserRepository,
+    WorkspaceRepository,
 )
 
 __all__ = [
@@ -29,5 +31,7 @@ __all__ = [
     "MetadataFilter",
     "ScoredChunk",
     "Tool",
+    "UserRepository",
     "VectorStore",
+    "WorkspaceRepository",
 ]

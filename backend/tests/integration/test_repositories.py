@@ -16,6 +16,8 @@ from app.domain.entities.financial_statement import (
     NormalizationAdjustment,
     StatementType,
 )
+from app.domain.entities.user import User, UserRole
+from app.domain.entities.workspace import Workspace
 from app.domain.value_objects.exchange import Exchange
 from app.domain.value_objects.fiscal_period import FiscalPeriod
 from app.domain.value_objects.ticker import Ticker
@@ -28,6 +30,10 @@ from app.infrastructure.db.repositories.document_repo import (
 )
 from app.infrastructure.db.repositories.statement_repo import (
     SQLAlchemyFinancialStatementRepository,
+)
+from app.infrastructure.db.repositories.user_repo import SQLAlchemyUserRepository
+from app.infrastructure.db.repositories.workspace_repo import (
+    SQLAlchemyWorkspaceRepository,
 )
 
 
@@ -103,6 +109,24 @@ async def test_document_repository_crud(db_session: AsyncSession) -> None:
     """
     Verifies document mapping and query helpers in SQLAlchemyDocumentRepository.
     """
+    # Create test user and workspace first to satisfy Foreign Key constraints
+    user_repo = SQLAlchemyUserRepository(db_session)
+    user = User(
+        id=uuid.uuid4(),
+        email="test_doc@equityiq.com",
+        hashed_password="somehashpassword",
+        role=UserRole.ANALYST,
+    )
+    await user_repo.save(user)
+
+    workspace_repo = SQLAlchemyWorkspaceRepository(db_session)
+    workspace = Workspace(
+        id=uuid.uuid4(),
+        name="Test Doc Workspace",
+        owner_id=user.id,
+    )
+    await workspace_repo.save(workspace)
+
     # Create parent company first to satisfy Foreign Key constraints
     comp_repo = SQLAlchemyCompanyRepository(db_session)
     company = Company(
@@ -120,14 +144,14 @@ async def test_document_repository_crud(db_session: AsyncSession) -> None:
     doc_repo = SQLAlchemyDocumentRepository(db_session)
     document = Document(
         id=uuid.uuid4(),
-        workspace_id=uuid.uuid4(),
+        workspace_id=workspace.id,
         company_id=company.id,
         doc_type=DocumentType.TEN_K,
         fiscal_period=FiscalPeriod("FY", 2024),
         storage_path="/path/to/msft_10k.pdf",
         parsing_status=ParsingStatus.PENDING,
         parsing_confidence=0.98,
-        uploaded_by=uuid.uuid4(),
+        uploaded_by=user.id,
     )
 
     # Test Save
@@ -152,6 +176,24 @@ async def test_financial_statement_repository_crud(
     """
     Verifies statement serialization/deserialization and query helpers.
     """
+    # Create test user and workspace first to satisfy Foreign Key constraints
+    user_repo = SQLAlchemyUserRepository(db_session)
+    user = User(
+        id=uuid.uuid4(),
+        email="test_stmt@equityiq.com",
+        hashed_password="somehashpassword",
+        role=UserRole.ANALYST,
+    )
+    await user_repo.save(user)
+
+    workspace_repo = SQLAlchemyWorkspaceRepository(db_session)
+    workspace = Workspace(
+        id=uuid.uuid4(),
+        name="Test Stmt Workspace",
+        owner_id=user.id,
+    )
+    await workspace_repo.save(workspace)
+
     # Create parent company and document to satisfy Foreign Key constraints
     comp_repo = SQLAlchemyCompanyRepository(db_session)
     company = Company(
@@ -169,14 +211,14 @@ async def test_financial_statement_repository_crud(
     doc_repo = SQLAlchemyDocumentRepository(db_session)
     document = Document(
         id=uuid.uuid4(),
-        workspace_id=uuid.uuid4(),
+        workspace_id=workspace.id,
         company_id=company.id,
         doc_type=DocumentType.TEN_Q,
         fiscal_period=FiscalPeriod("Q1", 2024),
         storage_path="/path/to/googl_q1.pdf",
         parsing_status=ParsingStatus.COMPLETED,
         parsing_confidence=1.0,
-        uploaded_by=uuid.uuid4(),
+        uploaded_by=user.id,
     )
     await doc_repo.save(document)
 

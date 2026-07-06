@@ -28,6 +28,17 @@ class Settings(BaseSettings):
     RELEASE_TAG: str = Field(
         default="v0.2.1-repository-cleanup", description="Active Git release tag"
     )
+    JWT_SECRET_KEY: str = Field(
+        default="supersecretkey_please_change_in_production_9812739182739812739",
+        description="Secret key for signing JWTs",
+    )
+    JWT_ALGORITHM: str = Field(default="HS256", description="JWT signing algorithm")
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(
+        default=15, description="Expiry duration of access tokens"
+    )
+    REFRESH_TOKEN_EXPIRE_DAYS: int = Field(
+        default=7, description="Expiry duration of refresh tokens"
+    )
 
 
 # Global settings instance

@@ -11,12 +11,14 @@ from app.domain.entities.financial_statement import (
 )
 from app.domain.entities.ratio import Ratio
 from app.domain.entities.recommendation import Recommendation, RecommendationType
+from app.domain.entities.user import User, UserRole
 from app.domain.entities.valuation import (
     ComparableCompanyAssumptions,
     DCFAssumptions,
     Valuation,
     ValuationMethod,
 )
+from app.domain.entities.workspace import Workspace, WorkspaceMembership
 
 __all__ = [
     "Company",
@@ -31,6 +33,10 @@ __all__ = [
     "Recommendation",
     "RecommendationType",
     "StatementType",
+    "User",
+    "UserRole",
     "Valuation",
     "ValuationMethod",
+    "Workspace",
+    "WorkspaceMembership",
 ]
