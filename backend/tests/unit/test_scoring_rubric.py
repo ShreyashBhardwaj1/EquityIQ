@@ -3,6 +3,7 @@ Unit tests for the Scoring Rubric.
 """
 
 import pytest
+
 from app.domain.entities.recommendation import RecommendationType
 from app.domain.rules.scoring_rubric import calculate_composite_score
 

@@ -3,6 +3,7 @@ Unit tests for DCF Math calculations.
 """
 
 import pytest
+
 from app.domain.exceptions import InvalidAssumptionError
 from app.domain.rules.dcf_math import calculate_dcf
 

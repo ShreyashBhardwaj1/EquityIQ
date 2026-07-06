@@ -3,26 +3,28 @@ Unit tests for Domain Entities.
 """
 
 from uuid import uuid4
+
 import pytest
-from app.domain.exceptions import EntityValidationError
-from app.domain.value_objects.ticker import Ticker
-from app.domain.value_objects.fiscal_period import FiscalPeriod
-from app.domain.value_objects.exchange import Exchange
+
 from app.domain.entities.company import Company
 from app.domain.entities.document import Document, DocumentType, ParsingStatus
 from app.domain.entities.financial_statement import (
     FinancialStatement,
-    StatementType,
     NormalizationAdjustment,
+    StatementType,
 )
 from app.domain.entities.ratio import Ratio
+from app.domain.entities.recommendation import Recommendation, RecommendationType
 from app.domain.entities.valuation import (
+    ComparableCompanyAssumptions,
+    DCFAssumptions,
     Valuation,
     ValuationMethod,
-    DCFAssumptions,
-    ComparableCompanyAssumptions,
 )
-from app.domain.entities.recommendation import Recommendation, RecommendationType
+from app.domain.exceptions import EntityValidationError
+from app.domain.value_objects.exchange import Exchange
+from app.domain.value_objects.fiscal_period import FiscalPeriod
+from app.domain.value_objects.ticker import Ticker
 
 
 def test_company_creation() -> None:
@@ -204,6 +206,7 @@ def test_valuation_creation() -> None:
         result={"intrinsic_value_per_share": 145.20},
     )
     assert val.method == ValuationMethod.DCF
+    assert isinstance(val.assumptions, DCFAssumptions)
     assert val.assumptions.wacc == 0.08
     assert val.result["intrinsic_value_per_share"] == 145.20
 
@@ -219,8 +222,8 @@ def test_valuation_creation() -> None:
         result={"valuation_multiple_median": 25.5},
     )
     assert val_comps.method == ValuationMethod.COMPS
+    assert isinstance(val_comps.assumptions, ComparableCompanyAssumptions)
     assert "MSFT" in val_comps.assumptions.peers
-
 
 
 def test_recommendation_creation() -> None:

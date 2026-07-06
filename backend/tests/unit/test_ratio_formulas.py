@@ -3,19 +3,20 @@ Unit tests for Financial Ratio Formulas.
 """
 
 import pytest
+
 from app.domain.exceptions import FinancialCalculationError
 from app.domain.rules.ratio_formulas import (
     calculate_current_ratio,
-    calculate_quick_ratio,
-    calculate_gross_margin,
-    calculate_operating_margin,
-    calculate_net_margin,
     calculate_debt_to_equity,
-    calculate_return_on_equity,
-    calculate_return_on_assets,
+    calculate_ev_to_ebitda,
+    calculate_gross_margin,
+    calculate_net_margin,
+    calculate_operating_margin,
     calculate_pe_ratio,
     calculate_price_to_book,
-    calculate_ev_to_ebitda,
+    calculate_quick_ratio,
+    calculate_return_on_assets,
+    calculate_return_on_equity,
 )
 
 
@@ -98,4 +99,3 @@ def test_division_by_zero_raises() -> None:
 
     with pytest.raises(FinancialCalculationError):
         calculate_ev_to_ebitda(1000.0, 0.0)
-

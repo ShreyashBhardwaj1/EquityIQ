@@ -3,12 +3,14 @@ Unit tests for Domain Value Objects.
 """
 
 from decimal import Decimal
+
 import pytest
+
 from app.domain.exceptions import EntityValidationError
-from app.domain.value_objects.money import Money
-from app.domain.value_objects.fiscal_period import FiscalPeriod
-from app.domain.value_objects.ticker import Ticker
 from app.domain.value_objects.exchange import Exchange
+from app.domain.value_objects.fiscal_period import FiscalPeriod
+from app.domain.value_objects.money import Money
+from app.domain.value_objects.ticker import Ticker
 
 
 def test_money_creation_and_properties() -> None:
@@ -140,5 +142,3 @@ def test_exchange_invalid() -> None:
 
     with pytest.raises(EntityValidationError):
         Exchange("NY$E")  # Special chars
-
-

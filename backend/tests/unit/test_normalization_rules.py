@@ -3,6 +3,7 @@ Unit tests for Normalization Rules.
 """
 
 from uuid import uuid4
+
 from app.domain.entities.financial_statement import NormalizationAdjustment
 from app.domain.rules.normalization_rules import (
     apply_normalization_adjustments,
