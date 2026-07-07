@@ -18,6 +18,7 @@ class Company(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True, frozen=True)
 
     id: UUID = Field(description="Unique identifier for the company")
+    workspace_id: UUID = Field(description="Scoping workspace identifier")
     ticker: Ticker = Field(description="Stock ticker symbol value object")
     exchange: Exchange = Field(description="Listing exchange value object")
     name: str = Field(min_length=1, description="Official company name")
@@ -30,3 +31,4 @@ class Company(BaseModel):
     currency: str = Field(
         min_length=3, max_length=3, description="ISO 4217 reporting currency code"
     )
+    country: str = Field(min_length=2, description="Listing country of the company")

@@ -64,13 +64,16 @@ async def test_company_repository_crud(db_session: AsyncSession) -> None:
     Verifies saving and querying companies through SQLAlchemyCompanyRepository.
     """
     repo = SQLAlchemyCompanyRepository(db_session)
+    ws_id = uuid.uuid4()
     company = Company(
         id=uuid.uuid4(),
+        workspace_id=ws_id,
         ticker=Ticker("AAPL"),
         exchange=Exchange("NASDAQ"),
         name="Apple Inc.",
         sector="Technology",
         industry="Consumer Electronics",
+        country="US",
         fiscal_year_end="09-30",
         currency="USD",
     )
@@ -80,23 +83,25 @@ async def test_company_repository_crud(db_session: AsyncSession) -> None:
     assert saved.ticker.symbol == "AAPL"
 
     # Test Get by ID
-    fetched_by_id = await repo.get_by_id(company.id)
+    fetched_by_id = await repo.get_by_id(ws_id, company.id)
     assert fetched_by_id is not None
     assert fetched_by_id.name == "Apple Inc."
 
     # Test Get by Ticker
-    fetched_by_ticker = await repo.get_by_ticker("AAPL")
+    fetched_by_ticker = await repo.get_by_ticker(ws_id, "AAPL")
     assert fetched_by_ticker is not None
     assert fetched_by_ticker.id == company.id
 
     # Test Update Save
     updated_company = Company(
         id=company.id,
+        workspace_id=ws_id,
         ticker=company.ticker,
         exchange=company.exchange,
         name="Apple Inc. Updated",
         sector=company.sector,
         industry=company.industry,
+        country="US",
         fiscal_year_end=company.fiscal_year_end,
         currency=company.currency,
     )
@@ -131,11 +136,13 @@ async def test_document_repository_crud(db_session: AsyncSession) -> None:
     comp_repo = SQLAlchemyCompanyRepository(db_session)
     company = Company(
         id=uuid.uuid4(),
+        workspace_id=workspace.id,
         ticker=Ticker("MSFT"),
         exchange=Exchange("NASDAQ"),
         name="Microsoft Corp.",
         sector="Technology",
         industry="Software",
+        country="US",
         fiscal_year_end="06-30",
         currency="USD",
     )
@@ -198,11 +205,13 @@ async def test_financial_statement_repository_crud(
     comp_repo = SQLAlchemyCompanyRepository(db_session)
     company = Company(
         id=uuid.uuid4(),
+        workspace_id=workspace.id,
         ticker=Ticker("GOOGL"),
         exchange=Exchange("NASDAQ"),
         name="Alphabet Inc.",
         sector="Technology",
         industry="Internet Services",
+        country="US",
         fiscal_year_end="12-31",
         currency="USD",
     )

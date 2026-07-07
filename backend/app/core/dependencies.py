@@ -4,10 +4,12 @@ Centralized dependency injection providers for FastAPI.
 
 from uuid import UUID
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, Header, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.application.services.company_service import CompanyService
+from app.application.services.workspace_service import WorkspaceService
 from app.core.config import Settings, settings
 from app.domain.entities.user import User, UserRole
 from app.infrastructure.db.manager import DatabaseManager, db_manager
@@ -119,6 +121,24 @@ def get_refresh_token_repository(
     return SQLAlchemyRefreshTokenRepository(session)
 
 
+def get_workspace_service(
+    workspace_repo: SQLAlchemyWorkspaceRepository = Depends(get_workspace_repository),
+) -> WorkspaceService:
+    """
+    Dependency provider yielding WorkspaceService.
+    """
+    return WorkspaceService(workspace_repo)
+
+
+def get_company_service(
+    company_repo: SQLAlchemyCompanyRepository = Depends(get_company_repository),
+) -> CompanyService:
+    """
+    Dependency provider yielding CompanyService.
+    """
+    return CompanyService(company_repo)
+
+
 def get_auth_service(
     user_repo: SQLAlchemyUserRepository = Depends(get_user_repository),
     workspace_repo: SQLAlchemyWorkspaceRepository = Depends(get_workspace_repository),
@@ -171,6 +191,53 @@ async def get_current_user(
         ) from None
 
     return user
+
+
+async def get_current_workspace_id(
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-ID"),
+    current_user: User = Depends(get_current_user),
+    workspace_repo: SQLAlchemyWorkspaceRepository = Depends(get_workspace_repository),
+) -> UUID:
+    """
+    Resolves active workspace UUID from X-Workspace-ID header or personal default.
+    """
+    resolved_id: UUID
+
+    if x_workspace_id:
+        try:
+            resolved_id = UUID(x_workspace_id)
+        except ValueError:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid X-Workspace-ID header format. Must be a valid UUID.",
+            ) from None
+    else:
+        # Fallback to user's first active workspace
+        user_workspaces = await workspace_repo.list_by_user(current_user.id)
+        if not user_workspaces:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="User does not belong to any active workspace.",
+            )
+        resolved_id = user_workspaces[0].id
+
+    # Verify membership relation
+    membership = await workspace_repo.get_membership(resolved_id, current_user.id)
+    if not membership:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User does not have access to this workspace.",
+        )
+
+    # Verify that workspace is active (not archived)
+    workspace = await workspace_repo.get_by_id(resolved_id)
+    if not workspace:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="The specified workspace is inactive or archived.",
+        )
+
+    return resolved_id
 
 
 def require_role(allowed_roles: list[UserRole]):

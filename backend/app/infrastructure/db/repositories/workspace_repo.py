@@ -4,7 +4,7 @@ SQLAlchemy repository adapter for Workspace.
 
 from uuid import UUID
 
-from sqlalchemy import delete, select
+from sqlalchemy import delete, func, select
 
 from app.domain.entities.workspace import Workspace, WorkspaceMembership
 from app.domain.interfaces.repositories import WorkspaceRepository
@@ -64,9 +64,13 @@ class SQLAlchemyWorkspaceRepository(BaseRepository[WorkspaceORM], WorkspaceRepos
 
     async def get_by_id(self, workspace_id: UUID) -> Workspace | None:
         """
-        Retrieves a workspace by its UUID.
+        Retrieves a workspace by its UUID (excluding archived workspaces).
         """
-        orm = await self._get(WorkspaceORM, workspace_id)
+        query = select(WorkspaceORM).where(
+            WorkspaceORM.id == workspace_id, WorkspaceORM.deleted_at.is_(None)
+        )
+        result = await self.session.execute(query)
+        orm = result.scalar_one_or_none()
         return self._to_domain(orm) if orm else None
 
     async def save(self, workspace: Workspace) -> Workspace:
@@ -87,9 +91,18 @@ class SQLAlchemyWorkspaceRepository(BaseRepository[WorkspaceORM], WorkspaceRepos
             await self.session.flush()
             return self._to_domain(orm)
 
+    async def delete(self, workspace_id: UUID) -> None:
+        """
+        Soft-deletes (archives) a workspace.
+        """
+        existing = await self.session.get(WorkspaceORM, workspace_id)
+        if existing:
+            existing.deleted_at = func.now()
+            await self.session.flush()
+
     async def list_by_user(self, user_id: UUID) -> list[Workspace]:
         """
-        Lists workspaces owned by user or where user has membership.
+        Lists workspaces owned by user or where user has membership (excluding archived).
         """
         query = (
             select(WorkspaceORM)
@@ -98,8 +111,11 @@ class SQLAlchemyWorkspaceRepository(BaseRepository[WorkspaceORM], WorkspaceRepos
                 WorkspaceORM.id == WorkspaceMembershipORM.workspace_id,
             )
             .where(
-                (WorkspaceORM.owner_id == user_id)
-                | (WorkspaceMembershipORM.user_id == user_id)
+                (
+                    (WorkspaceORM.owner_id == user_id)
+                    | (WorkspaceMembershipORM.user_id == user_id)
+                )
+                & WorkspaceORM.deleted_at.is_(None)
             )
             .distinct()
         )
@@ -152,3 +168,16 @@ class SQLAlchemyWorkspaceRepository(BaseRepository[WorkspaceORM], WorkspaceRepos
         )
         await self.session.execute(query)
         await self.session.flush()
+
+    async def list_memberships_by_user(
+        self, user_id: UUID
+    ) -> list[WorkspaceMembership]:
+        """
+        Lists all memberships for a user.
+        """
+        query = select(WorkspaceMembershipORM).where(
+            WorkspaceMembershipORM.user_id == user_id
+        )
+        result = await self.session.execute(query)
+        orms = result.scalars().all()
+        return [self._membership_to_domain(orm) for orm in orms]

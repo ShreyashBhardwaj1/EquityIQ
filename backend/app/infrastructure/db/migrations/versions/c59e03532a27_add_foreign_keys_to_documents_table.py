@@ -6,29 +6,24 @@ Create Date: 2026-07-06 12:44:42.611343
 
 """
 
-from typing import Sequence, Union
+from collections.abc import Sequence
 
-from alembic import op
 import sqlalchemy as sa
-
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = "c59e03532a27"
-down_revision: Union[str, Sequence[str], None] = "3767dcc294d4"
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | Sequence[str] | None = "3767dcc294d4"
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
     """Upgrade schema."""
     # Use batch_alter_table to support SQLite's table recreation workflow
     with op.batch_alter_table("documents") as batch_op:
-        batch_op.alter_column(
-            "workspace_id", existing_type=sa.UUID(), nullable=False
-        )
-        batch_op.alter_column(
-            "uploaded_by_id", existing_type=sa.UUID(), nullable=False
-        )
+        batch_op.alter_column("workspace_id", existing_type=sa.UUID(), nullable=False)
+        batch_op.alter_column("uploaded_by_id", existing_type=sa.UUID(), nullable=False)
 
         batch_op.create_index(
             batch_op.f("ix_documents_uploaded_by_id"),
@@ -60,19 +55,11 @@ def upgrade() -> None:
 def downgrade() -> None:
     """Downgrade schema."""
     with op.batch_alter_table("documents") as batch_op:
-        batch_op.drop_constraint(
-            "fk_documents_uploaded_by_id", type_="foreignkey"
-        )
-        batch_op.drop_constraint(
-            "fk_documents_workspace_id", type_="foreignkey"
-        )
+        batch_op.drop_constraint("fk_documents_uploaded_by_id", type_="foreignkey")
+        batch_op.drop_constraint("fk_documents_workspace_id", type_="foreignkey")
 
         batch_op.drop_index("ix_documents_workspace_id")
         batch_op.drop_index("ix_documents_uploaded_by_id")
 
-        batch_op.alter_column(
-            "uploaded_by_id", existing_type=sa.UUID(), nullable=True
-        )
-        batch_op.alter_column(
-            "workspace_id", existing_type=sa.UUID(), nullable=True
-        )
+        batch_op.alter_column("uploaded_by_id", existing_type=sa.UUID(), nullable=True)
+        batch_op.alter_column("workspace_id", existing_type=sa.UUID(), nullable=True)

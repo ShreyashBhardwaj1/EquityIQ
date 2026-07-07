@@ -4,6 +4,44 @@ All notable changes to the EquityIQ project will be documented in this file.
 
 ---
 
+## [v0.5.0-workspace-company] - 2026-07-07
+
+This release establishes the core business multi-tenant architecture of EquityIQ, implementing workspace isolation, membership-scoped access authorization, company directory management, paginated filtration, soft-delete archival systems, and search capabilities.
+
+### Added
+- **Workspace CRUD**: Added creation, listing, detail fetch, partial updates (PATCH), and switch context routes under `/workspaces`.
+- **Company CRUD**: Added creation, listing, scoped detail fetch, and partial updates (PATCH) under `/companies`.
+- **Workspace Isolation**: Configured header-based active workspace context resolution (`X-Workspace-ID`) with fallback checks.
+- **Workspace Membership Validation**: Integrated membership relationship checks preventing non-member access requests.
+- **Cross-Workspace Authorization**: Deployed validation guards ensuring that analysts or users cannot access company resources belonging to workspaces where they lack memberships.
+- **Search**: Integrated case-insensitive search matching query strings across company name, ticker symbol, exchange, and sector.
+- **Pagination**: Implemented limit/offset pagination parameters for company directory listings.
+- **Filtering**: Implemented listing filtration supporting exchange, sector, industry, and country fields.
+- **Soft Deletion**: Configured soft deletion (archival setting `deleted_at`) for both Workspace and Company ORM models, preserving historical logs.
+- **Company Restoration**: Automated automatic record restoration and update when creating a company whose ticker/exchange matches a soft-deleted record in the active workspace.
+- **PATCH Support**: Wired PATCH routes for workspace name and company details, enabling partial modifications.
+
+### Changed
+- **Company Domain Scoping**: Updated the `Company` entity to include `workspace_id` and `country` fields.
+- **Repository Interfaces**: Extended repository protocols to require workspace-scoped fetches, soft deletion, and pagination/filtration arguments.
+- **Database Schema**: Replaced the global company ticker unique constraint with a composite constraint scoping `(workspace_id, ticker, exchange)`.
+
+### Architecture
+- **Multi-Tenant Row-Level Security (RLS)**: Enforced isolation at the repository and service layer. Every data access command explicitly filters on `workspace_id`, and dependency injection validates that the authenticated user possesses a valid membership for that workspace.
+- **Soft Deletion Preservation**: Replaced hard cascades with timestamp-based archival, ensuring audit trails are retained.
+
+### Testing
+- **Integration Test Coverage**: Added `test_workspace_api.py` and `test_company_api.py` integration suites verifying CRUD lifecycles, sorting filters, text searches, and cross-workspace isolation boundaries.
+- **Current Tests Count**: 49 passing tests.
+
+### Validation
+- **Ruff**: Passed formatting and lint checks.
+- **MyPy**: Passed type validation (Success: no issues found in 105 source files).
+- **Import-Linter**: Passed contract validation ("Domain boundary rule KEPT").
+- **Pytest**: Passed with 100% success rate.
+
+---
+
 ## [v0.4.0-authentication] - 2026-07-06
 
 This release implements the core Identity & Authentication Platform, securing the backend API endpoints and organizing multi-tenant workspace isolation.

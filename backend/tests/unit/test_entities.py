@@ -31,11 +31,13 @@ def test_company_creation() -> None:
     """Test valid instantiation and pattern validation of Company entity."""
     comp = Company(
         id=uuid4(),
+        workspace_id=uuid4(),
         ticker=Ticker("AAPL"),
         exchange=Exchange("NASDAQ"),
         name="Apple Inc.",
         sector="Technology",
         industry="Consumer Electronics",
+        country="US",
         fiscal_year_end="09-30",
         currency="USD",
     )

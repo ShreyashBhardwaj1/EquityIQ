@@ -82,12 +82,12 @@ class AuthService:
         )
         saved_workspace = await self.workspace_repo.save(workspace)
 
-        # 4. Associate user as owner (Admin membership)
+        # 4. Associate user as owner (Owner membership)
         membership = WorkspaceMembership(
             id=uuid4(),
             workspace_id=workspace_id,
             user_id=user_id,
-            role="admin",  # Owner is default admin of their workspace
+            role="owner",  # Default owner membership
             created_at=datetime.utcnow(),
             updated_at=datetime.utcnow(),
         )

@@ -6,10 +6,10 @@ EquityIQ is a production-grade investment analysis and research platform built o
 
 ## Project Status
 
-- **Overall Progress**: **~62% Complete**
+- **Overall Progress**: **~76% Complete**
 - **Build Status**: **Passing** (Ruff, MyPy, Import-Linter green)
-- **Domain Model State**: **DOMAIN MODEL FROZEN** (Sealed contracts for downstream layers)
-- **Test Suite**: **47 tests passing** with **86% coverage** across domain, DB lifecycles, repositories, and authentication routes.
+- **Domain State**: **DOMAIN MODEL FROZEN** (Sealed contracts for downstream layers)
+- **Test Suite**: **49 tests passing** with **86% coverage** across domain, DB lifecycles, repositories, and API routes.
 
 ---
 
@@ -18,8 +18,10 @@ EquityIQ is a production-grade investment analysis and research platform built o
 ✅ **Domain Layer**: Complete mathematical structures for valuations, normalized statement models, scoring rubrics, and financial entities.  
 ✅ **Infrastructure Foundation**: Async SQLAlchemy session managers, database engine pool lifecycles, health services (Postgres, Redis), and structured JSON logging.  
 ✅ **Identity & Authentication**: Secure registration, login, logout, and token rotation workflows using native `bcrypt` and JWT with `jti` replay protection.  
-🚧 **Workspace & Company Management**: In Progress (Milestone 3C).  
-⏳ **Financial Statement Ingestion**: Planned.  
+✅ **Workspace Management**: Multi-workspace scoping, membership authorization roles, active switches, and safety deletion rules.  
+✅ **Company Management**: Row-isolated company registration, sorting, pagination filters, sector/ticker text search, and soft-delete duplicate restoration.  
+🚧 **Financial Data Foundation**: In Progress (Milestone 4).  
+⏳ **Document Parsing**: Planned.  
 ⏳ **RAG Pipeline**: Planned.  
 ⏳ **AI Research Agent**: Planned.  
 ⏳ **Report Generation**: Planned.  
@@ -33,7 +35,7 @@ EquityIQ is a production-grade investment analysis and research platform built o
 | **Language** | Python 3.12+ / TypeScript | Core Backend / Frontend |
 | **Backend** | FastAPI | Async Web API Framework |
 | **Security** | PyJWT / bcrypt | Token lifecycle management and secure password hashing |
-| **Database** | PostgreSQL / SQLAlchemy (async) | Relational Storage & ORM |
+| **Database** | SQLite (dev/test) / PostgreSQL (prod) | Relational Storage & ORM |
 | **Migrations**| Alembic | DB Schema Migrations |
 | **Task Queue**| Celery / Redis | Async Parsing and Embeddings processing |
 | **Orchestration**| LangChain & LlamaIndex | Agent Tool Calling & Filing Table parsing |
@@ -77,7 +79,7 @@ equityiq/
 │   │   └── workers/           # Celery async workers
 │   ├── tests/
 │   │   ├── unit/              # Fast unit tests for maths, rules, and security
-│   │   └── integration/       # Database integration and auth lifecycle tests
+│   │   └── integration/       # Database integration and auth/workspace/company API tests
 │   ├── .import-linter.cfg     # Strict boundary constraint rules
 │   └── pyproject.toml         # Packaging, Ruff, and MyPy configurations
 ├── frontend/                  # React/Next.js/TS client application
@@ -136,8 +138,8 @@ python -m ruff check backend/
 # 3. Verify static type checks
 python -m mypy backend/
 
-# 4. Check clean architecture imports
-C:\Users\Shrey\AppData\Roaming\Python\Python314\Scripts\import-linter.exe lint --config backend/.import-linter.cfg
+# 4. Check clean architecture imports boundary rules
+python -c "import sys; from importlinter.cli import import_linter; sys.exit(import_linter())" lint --config backend/.import-linter.cfg
 
 # 5. Run full test suite with coverage report
 python -m pytest backend/ --cov=app --cov-report=term-missing
@@ -151,8 +153,8 @@ python -m pytest backend/ --cov=app --cov-report=term-missing
 - [x] **Milestone 2**: Domain Layer Modeling and Math Engine
 - [x] **Milestone 3A**: Infrastructure Foundation (Database Manager, ORMs, JSON Logging)
 - [x] **Milestone 3B**: Identity & Authentication Platform (Bcrypt, JWT, Session Rotation)
-- [ ] **Milestone 3C**: Workspace & Company Management (FastAPI + Row-Level Security)
-- [ ] **Milestone 4**: Ingestion Pipeline (Upload + Text Extract + Table Parse)
+- [x] **Milestone 3C**: Workspace & Company Management (FastAPI + Row-Level Security)
+- [ ] **Milestone 4**: Financial Data Foundation (Statement Ingestion & Pipelines)
 - [ ] **Milestone 5**: Financial Extraction, Normalization, & Precedence Checks
 - [ ] **Milestone 6**: Vector Storage Pipeline & Hybrid Search Retrieval
 - [ ] **Milestone 7**: LLM Integration, Prompt-Injection Filters, Q&A Agent

@@ -15,16 +15,47 @@ from app.domain.entities.workspace import Workspace, WorkspaceMembership
 class CompanyRepository(Protocol):
     """Abstract interface for Company data persistence operations."""
 
-    async def get_by_id(self, company_id: UUID) -> Company | None:
-        """Retrieve a company by its unique ID."""
+    async def get_by_id(self, workspace_id: UUID, company_id: UUID) -> Company | None:
+        """Retrieve a company by its unique ID and workspace scoping."""
         ...
 
-    async def get_by_ticker(self, ticker: str) -> Company | None:
-        """Retrieve a company by its unique ticker symbol."""
+    async def get_by_ticker(
+        self,
+        workspace_id: UUID,
+        ticker: str,
+        exchange: str | None = None,
+        include_deleted: bool = False,
+    ) -> Company | None:
+        """Retrieve a company by its unique ticker symbol, optional exchange, and workspace scoping."""
         ...
 
     async def save(self, company: Company) -> Company:
         """Save/persist a company entity."""
+        ...
+
+    async def list_by_workspace(
+        self,
+        workspace_id: UUID,
+        limit: int = 20,
+        offset: int = 0,
+        sort_by: str | None = None,
+        sort_order: str | None = None,
+        exchange: str | None = None,
+        sector: str | None = None,
+        industry: str | None = None,
+        country: str | None = None,
+    ) -> list[Company]:
+        """List companies in a workspace with filters, sorting, and pagination."""
+        ...
+
+    async def search_companies(
+        self, workspace_id: UUID, query_str: str
+    ) -> list[Company]:
+        """Search companies in a workspace by name, ticker, exchange, or sector."""
+        ...
+
+    async def delete(self, workspace_id: UUID, company_id: UUID) -> None:
+        """Delete/soft-delete a company from a workspace."""
         ...
 
 
@@ -91,8 +122,12 @@ class WorkspaceRepository(Protocol):
         """Save/persist a workspace entity."""
         ...
 
+    async def delete(self, workspace_id: UUID) -> None:
+        """Archive/soft-delete a workspace."""
+        ...
+
     async def list_by_user(self, user_id: UUID) -> list[Workspace]:
-        """List workspaces where the user is owner or member."""
+        """List workspaces where the user is owner or member (excluding archived ones)."""
         ...
 
     async def save_membership(
@@ -109,4 +144,10 @@ class WorkspaceRepository(Protocol):
 
     async def delete_membership(self, workspace_id: UUID, user_id: UUID) -> None:
         """Delete a membership relation."""
+        ...
+
+    async def list_memberships_by_user(
+        self, user_id: UUID
+    ) -> list[WorkspaceMembership]:
+        """List all memberships for a user."""
         ...
