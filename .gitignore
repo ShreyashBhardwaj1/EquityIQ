@@ -62,3 +62,11 @@ Thumbs.db
 .env
 .env.*
 !.env.example
+
+# Local storage and test DBs
+backend/storage/
+storage/
+*.db
+*.db-journal
+*.db-shm
+*.db-wal

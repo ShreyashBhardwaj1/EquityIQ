@@ -3,6 +3,7 @@ Rules package containing mathematical and business rules for financial computati
 """
 
 from app.domain.rules.dcf_math import calculate_dcf
+from app.domain.rules.normalization import NormalizationEngine, NormalizationRule
 from app.domain.rules.normalization_rules import (
     apply_normalization_adjustments,
     detect_line_item_swings,
@@ -21,8 +22,13 @@ from app.domain.rules.ratio_formulas import (
     calculate_return_on_equity,
 )
 from app.domain.rules.scoring_rubric import calculate_composite_score
+from app.domain.rules.validation import ValidationContext, ValidationEngine
 
 __all__ = [
+    "NormalizationEngine",
+    "NormalizationRule",
+    "ValidationContext",
+    "ValidationEngine",
     "apply_normalization_adjustments",
     "calculate_composite_score",
     "calculate_current_ratio",

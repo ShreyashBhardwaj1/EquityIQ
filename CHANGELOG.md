@@ -4,6 +4,47 @@ All notable changes to the EquityIQ project will be documented in this file.
 
 ---
 
+## [v0.6.0-financial-data-foundation] - 2026-07-07
+
+This release implements the core Financial Data Foundation, establishing secure document metadata management, extensible accounting validation guards, rules-based priority mapping normalization, statement auditing history logs, and strict workspace tenant-isolation.
+
+### Added
+- **Document Metadata CRUD**: Added endpoints under `/documents` to support document registration, metadata retrieval, partial updates, and deletion.
+- **Secure File Storage**: Configured local storage directory writing isolated by workspace and company (`storage/uploads/workspace_{id}/company_{id}/`).
+- **File Validation**: Integrated magic bytes checks (PDF headers `b'%PDF-'`, text/CSV encoding checks) and a strict 50MB file size ceiling.
+- **Validation Engine**: Deployed an extensible rules-based `ValidationEngine` supporting custom rules injection.
+- **Accounting Identity Rule**: Added check guard verifying double-entry assets/liabilities/equity consistency on balance sheets.
+- **Duplicate Fiscal Period Rule**: Configured duplicate detection flagging attempts to post redundant statements of the same type/period.
+- **Fiscal Period Ordering Rule**: Restricts reporting years to a logical range of 1900-2100.
+- **Normalization Engine**: Implemented `NormalizationEngine` mapping reporting aliases to canonical names (e.g. "Revenues" -> "revenue").
+- **Priority Mappings**: Evolved mapping rules to support a priority order, ensuring high-priority rules override lower ones.
+- **Audited History Versioning**:
+  - `DocumentVersion`: Snapshots old physical files on disk when re-uploading, tracking change reasons.
+  - `FinancialStatementVersion`: Snapshots old statement values when updating figures, tracking auditors change reasons.
+- **Side-by-side Comparison**: Added `/compare` endpoint returning as-reported raw values side-by-side with normalized canonical values and differences.
+
+### Changed
+- **Repository Interface Signatures**: Updated `DocumentRepository` and `FinancialStatementRepository` to support optional workspace scoping on queries, preserving compatibility with old test modules.
+- **ORM Table Mappings**: Created `DocumentVersionORM` and `FinancialStatementVersionORM` mappings in SQLAlchemy.
+- **Database Schema**: Generated and executed database migration `21b5bfd818a5` for version tables.
+
+### Testing
+- **Validation Engine Unit Tests**: Created `test_validation_engine.py` checking core validation rules and custom rules injection.
+- **Normalization Pipeline Unit Tests**: Created `test_normalization_pipeline.py` checking aliases standardization.
+- **API Flow Integration Tests**: Created `test_financial_data.py` executing complete API flows, including imbalanced statements failures, updating files/statements, comparison reports, and workspace isolation checks.
+
+### Documentation
+- **Technical Debt**: Documented temporary local storage storage setup and future asynchronous processing as technical debt.
+- **Architecture & Roadmap**: Updated `README.md` with system flow overview and completed milestones.
+
+### Validation
+- **Ruff**: Passed formatting and lint checks cleanly.
+- **MyPy**: Passed type validation (Success: no issues found in 96 source files).
+- **Import-Linter**: Passed contract validation.
+- **Pytest**: Deployed 59 tests passing cleanly.
+
+---
+
 ## [v0.5.0-workspace-company] - 2026-07-07
 
 This release establishes the core business multi-tenant architecture of EquityIQ, implementing workspace isolation, membership-scoped access authorization, company directory management, paginated filtration, soft-delete archival systems, and search capabilities.

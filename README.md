@@ -6,10 +6,10 @@ EquityIQ is a production-grade investment analysis and research platform built o
 
 ## Project Status
 
-- **Overall Progress**: **~76% Complete**
+- **Overall Progress**: **60% Complete** (6 / 10 Milestones completed)
 - **Build Status**: **Passing** (Ruff, MyPy, Import-Linter green)
 - **Domain State**: **DOMAIN MODEL FROZEN** (Sealed contracts for downstream layers)
-- **Test Suite**: **49 tests passing** with **86% coverage** across domain, DB lifecycles, repositories, and API routes.
+- **Test Suite**: **59 tests passing** with clean coverage across domain, DB lifecycles, repositories, and API routes.
 
 ---
 
@@ -20,8 +20,8 @@ EquityIQ is a production-grade investment analysis and research platform built o
 ✅ **Identity & Authentication**: Secure registration, login, logout, and token rotation workflows using native `bcrypt` and JWT with `jti` replay protection.  
 ✅ **Workspace Management**: Multi-workspace scoping, membership authorization roles, active switches, and safety deletion rules.  
 ✅ **Company Management**: Row-isolated company registration, sorting, pagination filters, sector/ticker text search, and soft-delete duplicate restoration.  
-🚧 **Financial Data Foundation**: In Progress (Milestone 4).  
-⏳ **Document Parsing**: Planned.  
+✅ **Financial Data Foundation**: Secure document metadata uploads (limit 50MB, magic bytes validation for PDF/TXT/CSV), extensible validation engine, priority-based mapping normalization, statement version tracking, and workspace isolation.  
+⏳ **Document Intelligence Pipeline**: Planned (Milestone 5).  
 ⏳ **RAG Pipeline**: Planned.  
 ⏳ **AI Research Agent**: Planned.  
 ⏳ **Report Generation**: Planned.  
@@ -66,6 +66,30 @@ EquityIQ strictly enforces **Clean Architecture** boundaries where dependencies 
 
 ---
 
+## Core Engine Components (Milestone 4)
+
+### Validation Engine
+The platform includes an extensible, rules-based `ValidationEngine` that coordinates statement sanity checks. Built as a pipeline of `ValidationRule` implementations, it runs check guards such as:
+- **StatementTypeRule**: Verifies that statement types match one of the canonical categories (`income`, `balance`, `cashflow`).
+- **AccountingIdentityRule**: Validates double-entry accounting integrity on balance sheets (Assets = Liabilities + Equity).
+- **DuplicateFiscalPeriodRule**: Prevents registering duplicate statements of the same type for a company in the same fiscal quarter or year.
+- **FiscalPeriodOrderingRule**: Restricts fiscal years to a logical range (1900-2100).
+- **Extensibility**: Custom rules can be injected dynamically without changing the engine's public interface.
+
+### Normalization Engine
+To support the "Canonical Data First" principle, the `NormalizationEngine` cleans and standardizes raw statement line items during ingestion. Mappings are defined via `NormalizationRule` models supporting:
+- **Alias**: The raw text key parsed from files (e.g. "Cash & Cash Equivalents", "Cash and cash equivalents").
+- **Canonical Name**: The standardized internal key (e.g. `cash_equivalents`).
+- **Statement Type & Category Restrictions**: Filters mapping applicability.
+- **Priority**: A precedence order ensuring that if multiple alias rules match, the highest priority rule wins.
+
+### Document & Statement Versioning
+The system maintains a comprehensive, immutable audit trail of all changes:
+- **Document Versions**: When a filing document's physical file is re-uploaded, the system retains a copy of the old file on disk and registers a `DocumentVersion` snapshot detailing who changed it, the reason for the change, and the timestamp.
+- **Financial Statement Versions**: Updates to statement figures (raw line items or adjustments) generate a `FinancialStatementVersion` snapshot of the previous values before applying changes, preserving historical records for recovery and audits.
+
+---
+
 ## Project Structure
 
 ```
@@ -76,7 +100,7 @@ equityiq/
 │   │   ├── application/       # Use case orchestrations and business services
 │   │   ├── infrastructure/    # Adapters (SQLAlchemy, security, logging, external APIs)
 │   │   ├── api/               # FastAPI routers and route handlers
-│   │   └── workers/           # Celery async workers
+│   │   └── workers/           # Celery async workers (Deferred)
 │   ├── tests/
 │   │   ├── unit/              # Fast unit tests for maths, rules, and security
 │   │   └── integration/       # Database integration and auth/workspace/company API tests
@@ -154,8 +178,8 @@ python -m pytest backend/ --cov=app --cov-report=term-missing
 - [x] **Milestone 3A**: Infrastructure Foundation (Database Manager, ORMs, JSON Logging)
 - [x] **Milestone 3B**: Identity & Authentication Platform (Bcrypt, JWT, Session Rotation)
 - [x] **Milestone 3C**: Workspace & Company Management (FastAPI + Row-Level Security)
-- [ ] **Milestone 4**: Financial Data Foundation (Statement Ingestion & Pipelines)
-- [ ] **Milestone 5**: Financial Extraction, Normalization, & Precedence Checks
+- [x] **Milestone 4**: Financial Data Foundation (Statement Ingestion & Pipelines)
+- [ ] **Milestone 5**: Document Intelligence Pipeline (Asynchronous Parser Workers, OCR, & Chunk Extraction)
 - [ ] **Milestone 6**: Vector Storage Pipeline & Hybrid Search Retrieval
 - [ ] **Milestone 7**: LLM Integration, Prompt-Injection Filters, Q&A Agent
 - [ ] **Milestone 8**: Sentiment Analysis & Scopes Recommendation Score

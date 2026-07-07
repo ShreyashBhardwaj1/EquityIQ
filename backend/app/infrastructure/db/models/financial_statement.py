@@ -1,7 +1,4 @@
-"""
-FinancialStatement ORM model representation.
-"""
-
+from typing import Any
 from uuid import UUID
 
 from sqlalchemy import JSON, ForeignKey, String, UniqueConstraint
@@ -43,24 +40,24 @@ class FinancialStatementORM(Base):
     fiscal_period: Mapped[str] = mapped_column(
         String(10), nullable=False
     )  # e.g., 'Q1-2024', 'FY-2024'
-    line_items: Mapped[dict] = mapped_column(
+    line_items: Mapped[dict[str, float]] = mapped_column(
         JSON().with_variant(postgresql.JSONB(), "postgresql"),
         default=dict,
         server_default="{}",
         nullable=False,
     )
-    normalization_adjustments: Mapped[list] = mapped_column(
+    normalization_adjustments: Mapped[list[dict[str, Any]]] = mapped_column(
         JSON().with_variant(postgresql.JSONB(), "postgresql"),
         default=list,
         server_default="[]",
         nullable=False,
     )
-    normalized_line_items: Mapped[dict] = mapped_column(
+    normalized_line_items: Mapped[dict[str, float]] = mapped_column(
         JSON().with_variant(postgresql.JSONB(), "postgresql"),
         default=dict,
         server_default="{}",
         nullable=False,
     )
-    extraction_confidence: Mapped[dict | None] = mapped_column(
+    extraction_confidence: Mapped[dict[str, float] | None] = mapped_column(
         JSON().with_variant(postgresql.JSONB(), "postgresql"), nullable=True
     )

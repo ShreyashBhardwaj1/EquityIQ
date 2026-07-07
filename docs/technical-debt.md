@@ -30,6 +30,16 @@ This document tracks known limitations, design trade-offs, and future optimizati
 - **Justification**: Current configurations load `LLM_PROVIDER` and API keys during startup. Swapping providers requires container restarts.
 - **Plan**: Support run-time configuration overrides to enable seamless provider fallbacks if an API experiences downtime.
 
+### 2.3 Local Storage Setup
+- **Status**: Current Decision
+- **Justification**: Uploaded documents are saved directly to local directory storage (`storage/uploads`).
+- **Plan**: Migrate to a cloud-native block storage adapter interface (e.g. AWS S3 or Google Cloud Storage) for multi-server production deployment.
+
+### 2.4 Synchronous Ingestion Metadata
+- **Status**: Current Decision
+- **Justification**: Document uploads and metadata registration are handled synchronously in the FastAPI web thread.
+- **Plan**: When layout parsing and OCR are introduced, offload these long-running tasks to Celery background task workers via task queues.
+
 ---
 
 ## 3. Architectural Trade-offs & Rationale

@@ -3,6 +3,7 @@ JWT creation, decoding, and validation services.
 """
 
 from datetime import UTC, datetime, timedelta
+from typing import Any
 from uuid import UUID, uuid4
 
 import jwt
@@ -64,7 +65,7 @@ def create_refresh_token(user_id: UUID) -> tuple[str, datetime]:
     return token, expires_at
 
 
-def decode_token(token: str) -> dict | None:
+def decode_token(token: str) -> dict[str, Any] | None:
     """
     Decodes a JWT and verifies signatures, expiration, and key claims.
 

@@ -54,11 +54,11 @@ class Valuation(BaseModel):
     assumptions: DCFAssumptions | ComparableCompanyAssumptions | dict[str, Any] = Field(
         description="Input parameters and assumptions model"
     )
-    data_source_log: dict = Field(
+    data_source_log: dict[str, Any] = Field(
         default_factory=dict,
         description="Records which source was authoritative for conflict fields",
     )
-    result: dict = Field(
+    result: dict[str, Any] = Field(
         default_factory=dict, description="Calculated results and sensitivity grids"
     )
     created_at: datetime = Field(

@@ -4,10 +4,14 @@ Entities package containing domain entities for EquityIQ.
 
 from app.domain.entities.company import Company
 from app.domain.entities.document import Document, DocumentType, ParsingStatus
+from app.domain.entities.document_version import DocumentVersion
 from app.domain.entities.financial_statement import (
     FinancialStatement,
     NormalizationAdjustment,
     StatementType,
+)
+from app.domain.entities.financial_statement_version import (
+    FinancialStatementVersion,
 )
 from app.domain.entities.ratio import Ratio
 from app.domain.entities.recommendation import Recommendation, RecommendationType
@@ -26,7 +30,9 @@ __all__ = [
     "DCFAssumptions",
     "Document",
     "DocumentType",
+    "DocumentVersion",
     "FinancialStatement",
+    "FinancialStatementVersion",
     "NormalizationAdjustment",
     "ParsingStatus",
     "Ratio",

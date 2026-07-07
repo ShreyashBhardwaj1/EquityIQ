@@ -2,6 +2,7 @@
 Centralized dependency injection providers for FastAPI.
 """
 
+from collections.abc import Callable
 from uuid import UUID
 
 from fastapi import Depends, Header, HTTPException, status
@@ -9,6 +10,10 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.application.services.company_service import CompanyService
+from app.application.services.document_service import DocumentService
+from app.application.services.financial_statement_service import (
+    FinancialStatementService,
+)
 from app.application.services.workspace_service import WorkspaceService
 from app.core.config import Settings, settings
 from app.domain.entities.user import User, UserRole
@@ -139,6 +144,24 @@ def get_company_service(
     return CompanyService(company_repo)
 
 
+def get_document_service(
+    doc_repo: SQLAlchemyDocumentRepository = Depends(get_document_repository),
+) -> DocumentService:
+    """
+    Dependency provider yielding DocumentService.
+    """
+    return DocumentService(doc_repo)
+
+
+def get_statement_service(
+    statement_repo: SQLAlchemyFinancialStatementRepository = Depends(get_statement_repository),
+) -> FinancialStatementService:
+    """
+    Dependency provider yielding FinancialStatementService.
+    """
+    return FinancialStatementService(statement_repo)
+
+
 def get_auth_service(
     user_repo: SQLAlchemyUserRepository = Depends(get_user_repository),
     workspace_repo: SQLAlchemyWorkspaceRepository = Depends(get_workspace_repository),
@@ -240,7 +263,7 @@ async def get_current_workspace_id(
     return resolved_id
 
 
-def require_role(allowed_roles: list[UserRole]):
+def require_role(allowed_roles: list[UserRole]) -> Callable[[User], User]:
     """
     Role-based Access Control (RBAC) dependency helper.
     """
