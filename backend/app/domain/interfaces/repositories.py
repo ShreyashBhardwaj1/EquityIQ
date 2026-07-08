@@ -7,11 +7,13 @@ from uuid import UUID
 
 from app.domain.entities.company import Company
 from app.domain.entities.document import Document
+from app.domain.entities.document_chunk import DocumentChunk
 from app.domain.entities.document_version import DocumentVersion
 from app.domain.entities.financial_statement import FinancialStatement
 from app.domain.entities.financial_statement_version import (
     FinancialStatementVersion,
 )
+from app.domain.entities.parsing_manifest import ParsingManifest
 from app.domain.entities.user import User
 from app.domain.entities.workspace import Workspace, WorkspaceMembership
 
@@ -66,7 +68,9 @@ class CompanyRepository(Protocol):
 class DocumentRepository(Protocol):
     """Abstract interface for Document data persistence operations."""
 
-    async def get(self, document_id: UUID, workspace_id: UUID | None = None) -> Document | None:
+    async def get(
+        self, document_id: UUID, workspace_id: UUID | None = None
+    ) -> Document | None:
         """Retrieve a document by its unique ID, with optional workspace scoping."""
         ...
 
@@ -81,7 +85,10 @@ class DocumentRepository(Protocol):
         ...
 
     async def list_by_company(
-        self, company_id: UUID, workspace_id: UUID | None = None, fiscal_period: str | None = None
+        self,
+        company_id: UUID,
+        workspace_id: UUID | None = None,
+        fiscal_period: str | None = None,
     ) -> list[Document]:
         """List documents associated with a company, with optional workspace scoping."""
         ...
@@ -102,12 +109,18 @@ class DocumentRepository(Protocol):
 class FinancialStatementRepository(Protocol):
     """Abstract interface for FinancialStatement data persistence operations."""
 
-    async def get(self, statement_id: UUID, workspace_id: UUID | None = None) -> FinancialStatement | None:
+    async def get(
+        self, statement_id: UUID, workspace_id: UUID | None = None
+    ) -> FinancialStatement | None:
         """Retrieve a statement by its unique ID, with optional workspace scoping."""
         ...
 
     async def get_by_period(
-        self, company_id: UUID, statement_type: str, fiscal_period: str, workspace_id: UUID | None = None
+        self,
+        company_id: UUID,
+        statement_type: str,
+        fiscal_period: str,
+        workspace_id: UUID | None = None,
     ) -> FinancialStatement | None:
         """Retrieve a unique statement by company, type, period, and optional workspace scoping."""
         ...
@@ -122,7 +135,9 @@ class FinancialStatementRepository(Protocol):
         """List all statements associated with a company, with optional workspace scoping."""
         ...
 
-    async def delete(self, statement_id: UUID, workspace_id: UUID | None = None) -> None:
+    async def delete(
+        self, statement_id: UUID, workspace_id: UUID | None = None
+    ) -> None:
         """Delete a statement, with optional workspace scoping."""
         ...
 
@@ -130,8 +145,52 @@ class FinancialStatementRepository(Protocol):
         """Save a new historical revision version for a statement."""
         ...
 
-    async def list_versions(self, statement_id: UUID) -> list[FinancialStatementVersion]:
+    async def list_versions(
+        self, statement_id: UUID
+    ) -> list[FinancialStatementVersion]:
         """List all historical revisions of a statement."""
+        ...
+
+
+class ChunkRepository(Protocol):
+    """Abstract interface for DocumentChunk data persistence operations."""
+
+    async def save(self, chunk: DocumentChunk) -> DocumentChunk:
+        """Save a single document chunk."""
+        ...
+
+    async def save_batch(self, chunks: list[DocumentChunk]) -> None:
+        """Save a list of document chunks in a batch."""
+        ...
+
+    async def list_by_document(
+        self, document_id: UUID, limit: int = 100, offset: int = 0
+    ) -> list[DocumentChunk]:
+        """List chunks associated with a document, ordered by chunk_index."""
+        ...
+
+    async def delete_by_document(self, document_id: UUID) -> None:
+        """Delete all chunks associated with a document."""
+        ...
+
+    async def get(self, chunk_id: UUID) -> DocumentChunk | None:
+        """Retrieve a specific chunk by its ID."""
+        ...
+
+
+class ParsingManifestRepository(Protocol):
+    """Abstract interface for ParsingManifest data persistence operations."""
+
+    async def save(self, manifest: ParsingManifest) -> ParsingManifest:
+        """Save a parsing manifest metadata record."""
+        ...
+
+    async def get_by_document(self, document_id: UUID) -> ParsingManifest | None:
+        """Retrieve the parsing manifest associated with a document."""
+        ...
+
+    async def delete_by_document(self, document_id: UUID) -> None:
+        """Delete the parsing manifest associated with a document."""
         ...
 
 

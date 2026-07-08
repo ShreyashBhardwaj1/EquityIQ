@@ -2,6 +2,7 @@
 Rules package containing mathematical and business rules for financial computations.
 """
 
+from app.domain.rules.chunk_validation import ChunkValidator
 from app.domain.rules.dcf_math import calculate_dcf
 from app.domain.rules.normalization import NormalizationEngine, NormalizationRule
 from app.domain.rules.normalization_rules import (
@@ -25,6 +26,7 @@ from app.domain.rules.scoring_rubric import calculate_composite_score
 from app.domain.rules.validation import ValidationContext, ValidationEngine
 
 __all__ = [
+    "ChunkValidator",
     "NormalizationEngine",
     "NormalizationRule",
     "ValidationContext",

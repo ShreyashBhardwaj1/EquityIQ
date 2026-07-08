@@ -36,9 +36,8 @@ This document tracks known limitations, design trade-offs, and future optimizati
 - **Plan**: Migrate to a cloud-native block storage adapter interface (e.g. AWS S3 or Google Cloud Storage) for multi-server production deployment.
 
 ### 2.4 Synchronous Ingestion Metadata
-- **Status**: Current Decision
-- **Justification**: Document uploads and metadata registration are handled synchronously in the FastAPI web thread.
-- **Plan**: When layout parsing and OCR are introduced, offload these long-running tasks to Celery background task workers via task queues.
+- **Status**: Resolved (Milestone 5)
+- **Resolution**: Layout-aware parsing, OCR fallback, validation, and chunk extraction are now fully offloaded to Celery background task workers via task queues.
 
 ---
 
@@ -61,3 +60,7 @@ This document tracks known limitations, design trade-offs, and future optimizati
 
 ### 4.2 Production Secrets Injection
 - Avoid storing passwords in `.env.production` files. Use secure environment variable injection via AWS Secrets Manager, HashiCorp Vault, or GitHub Secrets during deployment pipelines.
+
+### 4.3 OCR Fallback Logging
+- **Status**: Current Decision
+- **Limitation**: When Tesseract is not installed locally, the PDF parser catches the error gracefully but logs a standard warning. On production systems that do not require OCR, these warnings can be ignored or filtered.

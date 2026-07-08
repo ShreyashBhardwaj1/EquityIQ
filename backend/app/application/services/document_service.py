@@ -20,7 +20,9 @@ class DocumentService:
     Coordinates metadata CRUD, secure upload storage, and versioning for files.
     """
 
-    def __init__(self, doc_repo: DocumentRepository, base_storage_path: str = "storage/uploads") -> None:
+    def __init__(
+        self, doc_repo: DocumentRepository, base_storage_path: str = "storage/uploads"
+    ) -> None:
         """
         Initializes DocumentService.
         """
@@ -35,14 +37,20 @@ class DocumentService:
         """
         if filename.lower().endswith(".pdf"):
             if not file_content.startswith(b"%PDF-"):
-                raise EntityValidationError("File is not a valid PDF document (header mismatch).")
+                raise EntityValidationError(
+                    "File is not a valid PDF document (header mismatch)."
+                )
         elif filename.lower().endswith((".txt", ".csv")):
             try:
                 file_content[:1024].decode("utf-8")
             except UnicodeDecodeError as e:
-                raise EntityValidationError("File contains invalid non-text characters.") from e
+                raise EntityValidationError(
+                    "File contains invalid non-text characters."
+                ) from e
         else:
-            raise EntityValidationError("Unsupported file extension. Only PDF, TXT, or CSV files are allowed.")
+            raise EntityValidationError(
+                "Unsupported file extension. Only PDF, TXT, or CSV files are allowed."
+            )
 
     async def upload_document(
         self,
@@ -68,7 +76,9 @@ class DocumentService:
         try:
             doc_type = DocumentType(doc_type_str)
         except ValueError as e:
-            raise EntityValidationError(f"Unsupported document type: {doc_type_str}") from e
+            raise EntityValidationError(
+                f"Unsupported document type: {doc_type_str}"
+            ) from e
 
         parts = fiscal_period_str.split("-")
         period = parts[0]
@@ -76,7 +86,11 @@ class DocumentService:
         fiscal_period = FiscalPeriod(period, year)
 
         # Construct tenant-isolated folder structure on disk
-        folder_path = Path(self.base_storage_path) / f"workspace_{workspace_id}" / f"company_{company_id}"
+        folder_path = (
+            Path(self.base_storage_path)
+            / f"workspace_{workspace_id}"
+            / f"company_{company_id}"
+        )
         os.makedirs(folder_path, exist_ok=True)
 
         # Generate unique file name on storage to avoid collisions
@@ -95,7 +109,7 @@ class DocumentService:
             doc_type=doc_type,
             fiscal_period=fiscal_period,
             storage_path=storage_path,
-            parsing_status=ParsingStatus.COMPLETED,  # Parsing is skipped/completed for metadata milestone
+            parsing_status=ParsingStatus.PENDING,
             parsing_confidence=1.0,
             uploaded_by=uploaded_by,
         )
@@ -106,7 +120,9 @@ class DocumentService:
         """
         Retrieves a document with workspace scoping check.
         """
-        doc = await self.doc_repo.get(document_id=document_id, workspace_id=workspace_id)
+        doc = await self.doc_repo.get(
+            document_id=document_id, workspace_id=workspace_id
+        )
         if not doc:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -114,11 +130,15 @@ class DocumentService:
             )
         return doc
 
-    async def list_documents(self, workspace_id: UUID, limit: int = 20, offset: int = 0) -> list[Document]:
+    async def list_documents(
+        self, workspace_id: UUID, limit: int = 20, offset: int = 0
+    ) -> list[Document]:
         """
         Lists all document metadata in a workspace.
         """
-        return await self.doc_repo.list_by_workspace(workspace_id=workspace_id, limit=limit, offset=offset)
+        return await self.doc_repo.list_by_workspace(
+            workspace_id=workspace_id, limit=limit, offset=offset
+        )
 
     async def list_company_documents(
         self, workspace_id: UUID, company_id: UUID, fiscal_period_str: str | None = None
@@ -127,7 +147,9 @@ class DocumentService:
         Lists company-specific document metadata in a workspace.
         """
         return await self.doc_repo.list_by_company(
-            company_id=company_id, workspace_id=workspace_id, fiscal_period=fiscal_period_str
+            company_id=company_id,
+            workspace_id=workspace_id,
+            fiscal_period=fiscal_period_str,
         )
 
     async def update_document_file(
@@ -142,7 +164,9 @@ class DocumentService:
         """
         Uploads a new file version for an existing document, creating an audit trail log.
         """
-        doc = await self.get_document(workspace_id=workspace_id, document_id=document_id)
+        doc = await self.get_document(
+            workspace_id=workspace_id, document_id=document_id
+        )
 
         # Validate file size and contents
         if len(file_content) > 50 * 1024 * 1024:
@@ -165,7 +189,11 @@ class DocumentService:
         await self.doc_repo.save_version(version=old_version)
 
         # Save the NEW file content to disk
-        folder_path = Path(self.base_storage_path) / f"workspace_{workspace_id}" / f"company_{doc.company_id}"
+        folder_path = (
+            Path(self.base_storage_path)
+            / f"workspace_{workspace_id}"
+            / f"company_{doc.company_id}"
+        )
         os.makedirs(folder_path, exist_ok=True)
         unique_filename = f"{uuid4()}_v{next_ver_index}_{filename}"
         new_storage_path = str(folder_path / unique_filename)
@@ -181,8 +209,8 @@ class DocumentService:
             doc_type=doc.doc_type,
             fiscal_period=doc.fiscal_period,
             storage_path=new_storage_path,
-            parsing_status=doc.parsing_status,
-            parsing_confidence=doc.parsing_confidence,
+            parsing_status=ParsingStatus.PENDING,
+            parsing_confidence=1.0,
             uploaded_by=doc.uploaded_by,
         )
 
@@ -192,7 +220,9 @@ class DocumentService:
         """
         Deletes document metadata record and clears physical storage file.
         """
-        doc = await self.get_document(workspace_id=workspace_id, document_id=document_id)
+        doc = await self.get_document(
+            workspace_id=workspace_id, document_id=document_id
+        )
 
         # Remove physical file
         try:
@@ -204,7 +234,9 @@ class DocumentService:
         # Delete database metadata (which cascades to document_versions)
         await self.doc_repo.delete(document_id=document_id, workspace_id=workspace_id)
 
-    async def list_document_versions(self, workspace_id: UUID, document_id: UUID) -> list[DocumentVersion]:
+    async def list_document_versions(
+        self, workspace_id: UUID, document_id: UUID
+    ) -> list[DocumentVersion]:
         """
         List versions for a document. Enforces workspace checks first.
         """

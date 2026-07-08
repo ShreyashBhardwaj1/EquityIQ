@@ -18,11 +18,15 @@ from app.application.services.workspace_service import WorkspaceService
 from app.core.config import Settings, settings
 from app.domain.entities.user import User, UserRole
 from app.infrastructure.db.manager import DatabaseManager, db_manager
+from app.infrastructure.db.repositories.chunk_repo import SQLAlchemyChunkRepository
 from app.infrastructure.db.repositories.company_repo import (
     SQLAlchemyCompanyRepository,
 )
 from app.infrastructure.db.repositories.document_repo import (
     SQLAlchemyDocumentRepository,
+)
+from app.infrastructure.db.repositories.parsing_manifest_repo import (
+    SQLAlchemyParsingManifestRepository,
 )
 from app.infrastructure.db.repositories.refresh_token_repo import (
     SQLAlchemyRefreshTokenRepository,
@@ -82,6 +86,24 @@ def get_statement_repository(
     Dependency provider yielding FinancialStatement repository.
     """
     return SQLAlchemyFinancialStatementRepository(session)
+
+
+def get_chunk_repository(
+    session: AsyncSession = Depends(get_db_session),
+) -> SQLAlchemyChunkRepository:
+    """
+    Dependency provider yielding Chunk repository.
+    """
+    return SQLAlchemyChunkRepository(session)
+
+
+def get_parsing_manifest_repository(
+    session: AsyncSession = Depends(get_db_session),
+) -> SQLAlchemyParsingManifestRepository:
+    """
+    Dependency provider yielding ParsingManifest repository.
+    """
+    return SQLAlchemyParsingManifestRepository(session)
 
 
 def get_health_service(
@@ -154,7 +176,9 @@ def get_document_service(
 
 
 def get_statement_service(
-    statement_repo: SQLAlchemyFinancialStatementRepository = Depends(get_statement_repository),
+    statement_repo: SQLAlchemyFinancialStatementRepository = Depends(
+        get_statement_repository
+    ),
 ) -> FinancialStatementService:
     """
     Dependency provider yielding FinancialStatementService.

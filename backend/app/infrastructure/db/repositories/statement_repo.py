@@ -203,7 +203,8 @@ class SQLAlchemyFinancialStatementRepository(
                 .where(
                     CompanyORM.workspace_id == workspace_id,
                     CompanyORM.id == company_id,
-                    FinancialStatementORM.statement_type == statement_type.lower().strip(),
+                    FinancialStatementORM.statement_type
+                    == statement_type.lower().strip(),
                     FinancialStatementORM.fiscal_period == fiscal_period.strip(),
                 )
             )
@@ -263,7 +264,9 @@ class SQLAlchemyFinancialStatementRepository(
         orms = result.scalars().all()
         return [self._to_domain(orm) for orm in orms]
 
-    async def delete(self, statement_id: UUID, workspace_id: UUID | None = None) -> None:
+    async def delete(
+        self, statement_id: UUID, workspace_id: UUID | None = None
+    ) -> None:
         """
         Deletes a statement, with optional workspace scoping context.
         """

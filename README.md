@@ -6,10 +6,10 @@ EquityIQ is a production-grade investment analysis and research platform built o
 
 ## Project Status
 
-- **Overall Progress**: **60% Complete** (6 / 10 Milestones completed)
+- **Overall Progress**: **70% Complete** (7 / 10 Milestones completed)
 - **Build Status**: **Passing** (Ruff, MyPy, Import-Linter green)
 - **Domain State**: **DOMAIN MODEL FROZEN** (Sealed contracts for downstream layers)
-- **Test Suite**: **59 tests passing** with clean coverage across domain, DB lifecycles, repositories, and API routes.
+- **Test Suite**: **70 tests passing** with clean coverage across domain, DB lifecycles, repositories, and API routes.
 
 ---
 
@@ -21,7 +21,7 @@ EquityIQ is a production-grade investment analysis and research platform built o
 ✅ **Workspace Management**: Multi-workspace scoping, membership authorization roles, active switches, and safety deletion rules.  
 ✅ **Company Management**: Row-isolated company registration, sorting, pagination filters, sector/ticker text search, and soft-delete duplicate restoration.  
 ✅ **Financial Data Foundation**: Secure document metadata uploads (limit 50MB, magic bytes validation for PDF/TXT/CSV), extensible validation engine, priority-based mapping normalization, statement version tracking, and workspace isolation.  
-⏳ **Document Intelligence Pipeline**: Planned (Milestone 5).  
+✅ **Document Intelligence Pipeline**: Layout-aware PDF and text parsing adapter using pdfplumber, Tesseract OCR fallback, paragraph-level and sentence-level semantic chunking with stable deterministic UUIDs (via uuid5), ParsingManifest metrics, and async Celery worker dispatching.  
 ⏳ **RAG Pipeline**: Planned.  
 ⏳ **AI Research Agent**: Planned.  
 ⏳ **Report Generation**: Planned.  
@@ -179,7 +179,7 @@ python -m pytest backend/ --cov=app --cov-report=term-missing
 - [x] **Milestone 3B**: Identity & Authentication Platform (Bcrypt, JWT, Session Rotation)
 - [x] **Milestone 3C**: Workspace & Company Management (FastAPI + Row-Level Security)
 - [x] **Milestone 4**: Financial Data Foundation (Statement Ingestion & Pipelines)
-- [ ] **Milestone 5**: Document Intelligence Pipeline (Asynchronous Parser Workers, OCR, & Chunk Extraction)
+- [x] **Milestone 5**: Document Intelligence Pipeline (Asynchronous Parser Workers, OCR, & Chunk Extraction)
 - [ ] **Milestone 6**: Vector Storage Pipeline & Hybrid Search Retrieval
 - [ ] **Milestone 7**: LLM Integration, Prompt-Injection Filters, Q&A Agent
 - [ ] **Milestone 8**: Sentiment Analysis & Scopes Recommendation Score

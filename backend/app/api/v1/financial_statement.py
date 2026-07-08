@@ -31,21 +31,33 @@ class NormalizationAdjustmentInput(BaseModel):
     adjustment: float = Field(..., description="Numerical revision (+/-)")
     reason: str = Field(..., min_length=1, description="Justification explanation")
     source_document_id: UUID = Field(..., description="Provenance source file UUID")
-    source_page: int = Field(..., ge=1, description="Page number where the adjustment is sourced")
+    source_page: int = Field(
+        ..., ge=1, description="Page number where the adjustment is sourced"
+    )
 
 
 class StatementCreate(BaseModel):
     company_id: UUID = Field(..., description="Associated company ID")
     document_id: UUID = Field(..., description="Associated source document ID")
-    statement_type: str = Field(..., description="Statement category: income, balance, cashflow")
-    fiscal_period: str = Field(..., description="Reporting fiscal period (e.g. Q1-2024)")
+    statement_type: str = Field(
+        ..., description="Statement category: income, balance, cashflow"
+    )
+    fiscal_period: str = Field(
+        ..., description="Reporting fiscal period (e.g. Q1-2024)"
+    )
     line_items: dict[str, float] = Field(..., description="As-reported raw line items")
 
 
 class StatementPatch(BaseModel):
-    line_items: dict[str, float] | None = Field(None, description="Updated raw line items")
-    adjustments: list[NormalizationAdjustmentInput] | None = Field(None, description="Adjustments list")
-    change_reason: str = Field(..., min_length=1, description="Reason for statement changes")
+    line_items: dict[str, float] | None = Field(
+        None, description="Updated raw line items"
+    )
+    adjustments: list[NormalizationAdjustmentInput] | None = Field(
+        None, description="Adjustments list"
+    )
+    change_reason: str = Field(
+        ..., min_length=1, description="Reason for statement changes"
+    )
 
 
 # Response schemas
@@ -136,7 +148,9 @@ async def create_statement(
             created_at=statement.created_at,
         )
     except EntityValidationError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)) from e
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
+        ) from e
 
 
 @router.get("", response_model=list[StatementResponse])
@@ -148,7 +162,9 @@ async def list_statements(
     """
     List all financial statements associated with a company in the active workspace.
     """
-    statements = await statement_service.list_company_statements(workspace_id, company_id)
+    statements = await statement_service.list_company_statements(
+        workspace_id, company_id
+    )
     return [
         StatementResponse(
             id=s.id,
@@ -183,7 +199,9 @@ async def get_statement_history(
     """
     Retrieve historical revision version audits for a statement.
     """
-    versions = await statement_service.list_statement_versions(workspace_id, statement_id)
+    versions = await statement_service.list_statement_versions(
+        workspace_id, statement_id
+    )
     return [
         StatementVersionResponse(
             id=v.id,
@@ -299,7 +317,9 @@ async def patch_statement(
             created_at=statement.created_at,
         )
     except EntityValidationError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)) from e
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
+        ) from e
 
 
 @router.get("/{statement_id}/compare", response_model=ComparisonReportResponse)

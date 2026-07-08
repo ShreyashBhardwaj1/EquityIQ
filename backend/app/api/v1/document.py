@@ -11,13 +11,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.application.services.document_service import DocumentService
 from app.core.dependencies import (
+    get_chunk_repository,
     get_current_user,
     get_current_workspace_id,
     get_document_service,
 )
 from app.domain.entities.user import User
 from app.domain.exceptions import EntityValidationError
+from app.infrastructure.db.repositories.chunk_repo import SQLAlchemyChunkRepository
 from app.infrastructure.db.session import get_db_session
+from app.workers.tasks import parse_document_task
 
 router = APIRouter(prefix="/documents", tags=["Documents"])
 
@@ -85,7 +88,9 @@ async def upload_document(
             created_at=doc.created_at,
         )
     except EntityValidationError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)) from e
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
+        ) from e
 
 
 @router.get("", response_model=list[DocumentResponse])
@@ -182,7 +187,9 @@ async def update_document(
             created_at=doc.created_at,
         )
     except EntityValidationError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)) from e
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
+        ) from e
 
 
 @router.delete("/{document_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -220,4 +227,124 @@ async def list_document_versions(
             created_at=v.created_at,
         )
         for v in versions
+    ]
+
+
+# Chunk schemas
+class ChunkMetadataResponse(BaseModel):
+    workspace_id: UUID
+    company_id: UUID
+    document_id: UUID
+    statement_type: str | None
+    document_type: str
+    fiscal_year: int | None
+    fiscal_period: str | None
+    page_number: int
+    chunk_index: int
+    section_heading: str | None
+    source_file: str
+    parser_version: str
+    document_version: int
+    parse_version: int
+    created_at: datetime
+
+
+class ChunkResponse(BaseModel):
+    id: UUID
+    document_id: UUID
+    content: str
+    page_number: int
+    chunk_index: int
+    section_heading: str | None
+    metadata: ChunkMetadataResponse
+
+
+@router.post("/{document_id}/parse", status_code=status.HTTP_202_ACCEPTED)
+async def parse_document(
+    document_id: UUID,
+    workspace_id: UUID = Depends(get_current_workspace_id),
+    doc_service: DocumentService = Depends(get_document_service),
+) -> dict[str, str]:
+    """
+    Queue background parsing for the uploaded document file.
+    """
+    # Verify access to document
+    await doc_service.get_document(workspace_id, document_id)
+
+    # Trigger Celery background task
+    parse_document_task.delay(str(document_id), str(workspace_id))
+
+    return {
+        "status": "queued",
+        "message": "Document parsing task dispatched successfully.",
+    }
+
+
+@router.post("/{document_id}/reprocess", status_code=status.HTTP_202_ACCEPTED)
+async def reprocess_document(
+    document_id: UUID,
+    workspace_id: UUID = Depends(get_current_workspace_id),
+    doc_service: DocumentService = Depends(get_document_service),
+) -> dict[str, str]:
+    """
+    Queue background reprocessing for future parser upgrades.
+    """
+    # Verify access to document
+    await doc_service.get_document(workspace_id, document_id)
+
+    # Trigger Celery background task
+    parse_document_task.delay(str(document_id), str(workspace_id))
+
+    return {
+        "status": "queued",
+        "message": "Document reprocessing task dispatched successfully.",
+    }
+
+
+@router.get("/{document_id}/chunks", response_model=list[ChunkResponse])
+async def list_document_chunks(
+    document_id: UUID,
+    limit: int = 100,
+    offset: int = 0,
+    workspace_id: UUID = Depends(get_current_workspace_id),
+    doc_service: DocumentService = Depends(get_document_service),
+    chunk_repo: SQLAlchemyChunkRepository = Depends(get_chunk_repository),
+) -> list[ChunkResponse]:
+    """
+    List generated semantic chunks for a document. Enforces workspace checks first.
+    """
+    # Verify access to document
+    await doc_service.get_document(workspace_id, document_id)
+
+    chunks = await chunk_repo.list_by_document(
+        document_id=document_id, limit=limit, offset=offset
+    )
+
+    return [
+        ChunkResponse(
+            id=c.id,
+            document_id=c.document_id,
+            content=c.content,
+            page_number=c.page_number,
+            chunk_index=c.chunk_index,
+            section_heading=c.section_heading,
+            metadata=ChunkMetadataResponse(
+                workspace_id=c.metadata.workspace_id,
+                company_id=c.metadata.company_id,
+                document_id=c.metadata.document_id,
+                statement_type=c.metadata.statement_type,
+                document_type=c.metadata.document_type,
+                fiscal_year=c.metadata.fiscal_year,
+                fiscal_period=c.metadata.fiscal_period,
+                page_number=c.metadata.page_number,
+                chunk_index=c.metadata.chunk_index,
+                section_heading=c.metadata.section_heading,
+                source_file=c.metadata.source_file,
+                parser_version=c.metadata.parser_version,
+                document_version=c.metadata.document_version,
+                parse_version=c.metadata.parse_version,
+                created_at=c.metadata.created_at,
+            ),
+        )
+        for c in chunks
     ]

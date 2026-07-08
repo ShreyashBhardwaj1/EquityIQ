@@ -4,6 +4,40 @@ All notable changes to the EquityIQ project will be documented in this file.
 
 ---
 
+## [v0.7.0-document-intelligence] - 2026-07-08
+
+This release introduces the Document Intelligence Pipeline, implementing layout-aware document ingestion and processing workflows, paragraph-based semantic chunking, and deterministic metadata audit trails.
+
+### Added
+- **Layout-Aware PDF Ingestion**: Integrated `pdfplumber` parsing native PDF text page-by-page.
+- **Table Extraction to Markdown**: Converted layout tables extracted from filings directly into clean Markdown tables for structured downstream ingestion.
+- **Stable Chunk Identities**: Engineered deterministic chunk ID generation using `uuid.uuid5` utilizing the parent document UUID as the namespace and `chunk_index` as the name.
+- **Parsing Manifest Audit Logs**: Created `ParsingManifest` tracking parser version, chunk strategy, size/overlap boundaries, duration, table count, chunk count, warnings, and extraction confidence.
+- **Extensible Chunk Validation**: Deployed validation guards (`ChunkValidator`) verifying chunk ordering, duplicate content checks, empty text guards, metadata completeness, and size limits.
+- **Asynchronous Task Workers**: Configured Celery and Redis to dispatch long-running document parses asynchronously, isolating parsing tasks from FastAPI thread context.
+- **API Endpoints**:
+  - `POST /documents/{id}/parse`: Dispatches background parsing task.
+  - `POST /documents/{id}/reprocess`: Forces parser re-runs for future upgrades, incrementing `parse_version`.
+  - `GET /documents/{id}/chunks`: Lists extracted chunks for a document, scoped by workspace ID.
+
+### Changed
+- **Database Schema**: Generated and applied migration `cda555623a44` to support `document_chunks` and `parsing_manifests` tables.
+- **Parser Settings**: Configured thresholds (`MIN_NATIVE_TEXT_LENGTH`, `OCR_CONFIDENCE_THRESHOLD`, and `PARSER_TIMEOUT_SECONDS`) into settings rather than hardcoding.
+
+### Engineering Improvements
+- **Fallback Plain-Text Parsing**: Configured automatic fallback to raw text extraction if a file does not have a `.pdf` extension or if opening the PDF binary fails.
+- **OCR Graceful Fallback**: Traps pytesseract import/binary exceptions, logging warnings and tracking them in manifest audit records instead of failing the pipeline.
+- **Eager Celery Thread Execution**: Implemented thread-spawning fallback logic in task runners to prevent active event loop conflicts under FastAPI TestClient eager executions.
+
+### Testing
+- **Unit Verification**: Built fast unit tests validating chunker splits, paragraph sentence fallbacks, table MD conversions, and chunk validator constraints.
+- **Integration Flow Tests**: Added `test_document_intelligence.py` verifying registration, upload, parsing dispatch, db status updates, chunks fetches, reprocess iterations, and workspace boundary security.
+
+### Documentation
+- **Technical Debt Register**: Updated registers to resolve synchronous ingestion debt and document new OCR logs warning details.
+- **Engineering Journal**: Documented architectural decisions, lessons, and journals for Day 4.
+
+
 ## [v0.6.0-financial-data-foundation] - 2026-07-07
 
 This release implements the core Financial Data Foundation, establishing secure document metadata management, extensible accounting validation guards, rules-based priority mapping normalization, statement auditing history logs, and strict workspace tenant-isolation.

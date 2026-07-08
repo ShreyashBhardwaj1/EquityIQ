@@ -39,6 +39,26 @@ class Settings(BaseSettings):
     REFRESH_TOKEN_EXPIRE_DAYS: int = Field(
         default=7, description="Expiry duration of refresh tokens"
     )
+    DEFAULT_CHUNK_SIZE: int = Field(
+        default=1000,
+        description="Default character length threshold for document chunking",
+    )
+    DEFAULT_CHUNK_OVERLAP: int = Field(
+        default=200,
+        description="Default character overlap size between consecutive chunks",
+    )
+    MIN_NATIVE_TEXT_LENGTH: int = Field(
+        default=50,
+        description="Minimum native character length below which OCR fallback is triggered",
+    )
+    OCR_CONFIDENCE_THRESHOLD: float = Field(
+        default=0.70,
+        description="Estimated extraction confidence for pytesseract OCR fallback",
+    )
+    PARSER_TIMEOUT_SECONDS: int = Field(
+        default=300,
+        description="Timeout duration in seconds for parser execution",
+    )
 
 
 # Global settings instance

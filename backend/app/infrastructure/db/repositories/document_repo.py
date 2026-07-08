@@ -86,7 +86,9 @@ class SQLAlchemyDocumentRepository(BaseRepository[DocumentORM], DocumentReposito
             created_at=domain.created_at,
         )
 
-    async def get(self, document_id: UUID, workspace_id: UUID | None = None) -> Document | None:
+    async def get(
+        self, document_id: UUID, workspace_id: UUID | None = None
+    ) -> Document | None:
         """
         Retrieves a document by its ID, with optional workspace scoping.
         """
@@ -137,7 +139,10 @@ class SQLAlchemyDocumentRepository(BaseRepository[DocumentORM], DocumentReposito
         return [self._to_domain(orm) for orm in orms]
 
     async def list_by_company(
-        self, company_id: UUID, workspace_id: UUID | None = None, fiscal_period: str | None = None
+        self,
+        company_id: UUID,
+        workspace_id: UUID | None = None,
+        fiscal_period: str | None = None,
     ) -> list[Document]:
         """
         Lists documents associated with a company, with optional workspace scoping.

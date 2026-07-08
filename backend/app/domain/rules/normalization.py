@@ -13,10 +13,12 @@ class NormalizationRule(BaseModel):
     alias: str = Field(description="Raw string name found in filings/data sources")
     canonical_name: str = Field(description="Standardized name inside the system")
     statement_type: str | None = Field(
-        default=None, description="Optional restriction to statement type (e.g. balance)"
+        default=None,
+        description="Optional restriction to statement type (e.g. balance)",
     )
     category: str | None = Field(
-        default=None, description="Optional classification category (e.g. current_assets)"
+        default=None,
+        description="Optional classification category (e.g. current_assets)",
     )
     required: bool = Field(
         default=False, description="Flag indicating if this item must be present"
@@ -55,8 +57,7 @@ class NormalizationEngine:
             if (
                 rule.statement_type is None
                 or statement_type is None
-                or rule.statement_type.lower().strip()
-                == statement_type.lower().strip()
+                or rule.statement_type.lower().strip() == statement_type.lower().strip()
             ):
                 alias_mapping[rule.alias.lower().strip()] = rule.canonical_name
 

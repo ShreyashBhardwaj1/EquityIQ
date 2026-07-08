@@ -218,7 +218,9 @@ class FinancialStatementService:
         """
         Retrieves a financial statement by ID with workspace isolation.
         """
-        statement = await self.statement_repo.get(statement_id=statement_id, workspace_id=workspace_id)
+        statement = await self.statement_repo.get(
+            statement_id=statement_id, workspace_id=workspace_id
+        )
         if not statement:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -232,7 +234,9 @@ class FinancialStatementService:
         """
         Lists statements associated with a company in a workspace.
         """
-        return await self.statement_repo.list_by_company(company_id=company_id, workspace_id=workspace_id)
+        return await self.statement_repo.list_by_company(
+            company_id=company_id, workspace_id=workspace_id
+        )
 
     async def update_statement(
         self,
@@ -307,15 +311,15 @@ class FinancialStatementService:
         # Save to database
         return await self.statement_repo.save(updated_statement)
 
-    async def delete_statement(
-        self, workspace_id: UUID, statement_id: UUID
-    ) -> None:
+    async def delete_statement(self, workspace_id: UUID, statement_id: UUID) -> None:
         """
         Deletes a statement from a workspace context.
         """
         # Verify exists first
         await self.get_statement(workspace_id, statement_id)
-        await self.statement_repo.delete(statement_id=statement_id, workspace_id=workspace_id)
+        await self.statement_repo.delete(
+            statement_id=statement_id, workspace_id=workspace_id
+        )
 
     async def list_statement_versions(
         self, workspace_id: UUID, statement_id: UUID
