@@ -4,6 +4,43 @@ All notable changes to the EquityIQ project will be documented in this file.
 
 ---
 
+## [v0.8.0-vector-storage-hybrid-search] - 2026-07-08
+
+This release introduces the Vector Storage Pipeline & Hybrid Search Retrieval system, implementing local SentenceTransformers vector embedding, disk-persisted FAISS CPU flat indexes with strict database-assisted pre-filtering, SQLite FTS5 full-text keyword retrieval, min-max score normalization, and linear combination hybrid rank fusion.
+
+### Added
+- **Local Vector Embeddings**: Integrated Hugging Face's `all-MiniLM-L6-v2` SentenceTransformers model for framework-independent, local vector generation (384-dim).
+- **FAISS CPU Vector Store**: Deployed `FaissVectorStore` backing queries utilizing exact inner-product `IndexFlatIP` to calculate Cosine Similarity.
+- **Strict Database-Assisted Pre-filtering**: Leveraged `faiss.IDSelectorBatch` to pre-filter FAISS vector searches using candidate chunk UUIDs resolved from SQL metadata queries. This enforces 100% strict workspace isolation.
+- **SQLite FTS5 Full-Text Engine**: Created virtual table `document_chunks_fts USING fts5(content, chunk_id UNINDEXED)` in SQLite to support BM25-based keyword matching.
+- **FTS5 Synchronization Triggers**: Connected chunk repository `save`, `save_batch`, and `delete_by_document` methods to SQLite FTS5 statements, keeping the virtual table indices in sync automatically.
+- **Min-Max Score Normalization**: Implemented a Min-Max scaling utility in `HybridSearchService` to normalize vector similarity scores and BM25 keyword scores to a $[0.0, 1.0]$ range before ranking.
+- **Linear Fusion Combine**: Blends normalized semantic and keyword scores dynamically via: `alpha * semantic_score + (1 - alpha) * keyword_score`.
+- **API Endpoints**:
+  - `POST /search/semantic`: Performs pure similarity vector searches.
+  - `POST /search/hybrid`: Blends semantic vectors and FTS5 keyword matches.
+  - `POST /search/rebuild`: Forces a complete rebuild of a workspace index from database chunk records.
+- **Celery Worker Integration**: Wired the document parsing pipeline tasks to automatically rebuild the workspace index and generate embeddings for newly parsed documents.
+
+### Changed
+- **Database Schema**: Generated and applied migration `49d012359df1_add_embedding_and_manifest_tables.py` creating the `embeddings` and `embedding_manifests` tables (with `created_at`, `updated_at`, and `deleted_at` columns) and the FTS5 virtual table.
+- **Core Configurations**: Added setting variables for `VECTOR_INDEX_VERSION`, `EMBEDDING_MODEL_NAME`, `EMBEDDING_DIMENSION`, and `EMBEDDING_BATCH_SIZE`.
+- **Dependencies Module**: Added repository dependency providers (`get_embedding_repository`, `get_embedding_manifest_repository`) and application service providers (`get_embedding_service`, `get_retrieval_service`, `get_hybrid_search_service`, `get_index_manager`, `get_index_builder`).
+
+### Engineering Improvements
+- **Graceful Degradation**: Configured FTS5 keyword searches to log warnings and degrade gracefully (returning empty lists) if SQLite FTS5 queries fail or are not supported on the active database driver.
+- **Type Checker Cleanups**: Avoided swig keyword arguments in `faiss.SearchParameters` to satisfy MyPy typing constraints.
+
+### Testing
+- **Unit Verification**: Built `test_embeddings_store.py` verifying FAISS CRUD operations, exact pre-filtering, and saving/loading index binary files to/from disk.
+- **Integration API Tests**: Built `test_search_api.py` validating registration, uploads, synchronous parsing, vector embedding generation, `/search/semantic`, `/search/hybrid`, and manual index rebuilds, along with strict tenant isolation verification.
+
+### Documentation
+- **Updated Project Overview**: Documented the hybrid search architecture, indexing lifecycle, and retrieval pipeline details in `README.md`.
+- **Engineering Journal**: Documented major accomplishments, decisions, lessons, and journals for Day 5.
+
+---
+
 ## [v0.7.0-document-intelligence] - 2026-07-08
 
 This release introduces the Document Intelligence Pipeline, implementing layout-aware document ingestion and processing workflows, paragraph-based semantic chunking, and deterministic metadata audit trails.

@@ -71,7 +71,7 @@ def test_validation_ordering_error():
     meta1 = create_mock_metadata(chunk_index=0)
     meta1 = meta1.model_copy(update={"document_id": doc_id})
 
-    meta2 = create_mock_metadata(chunk_index=2) # Gap here: index 2 instead of 1
+    meta2 = create_mock_metadata(chunk_index=2)  # Gap here: index 2 instead of 1
     meta2 = meta2.model_copy(update={"document_id": doc_id})
 
     chunks = [

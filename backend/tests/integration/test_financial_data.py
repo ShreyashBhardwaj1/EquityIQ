@@ -159,7 +159,9 @@ def test_financial_data_foundation_flow(test_db: None) -> None:
     )
     assert stmt_res.status_code == 201
     income_stmt = stmt_res.json()
-    assert income_stmt["normalized_line_items"]["revenue"] == 1000.0  # Mapping standardisation alias check
+    assert (
+        income_stmt["normalized_line_items"]["revenue"] == 1000.0
+    )  # Mapping standardisation alias check
     assert income_stmt["normalized_line_items"]["net_income"] == 200.0
     stmt_a_id = income_stmt["id"]
 
@@ -243,7 +245,13 @@ def test_financial_data_foundation_flow(test_db: None) -> None:
     doc_patch_res = client.patch(
         f"/documents/{doc_a_id}",
         data={"change_reason": "Re-uploaded clear PDF filing scan."},
-        files={"file": ("AAPL_10K_2024_revised.pdf", BytesIO(new_file_bytes), "application/pdf")},
+        files={
+            "file": (
+                "AAPL_10K_2024_revised.pdf",
+                BytesIO(new_file_bytes),
+                "application/pdf",
+            )
+        },
         headers=headers1,
     )
     assert doc_patch_res.status_code == 200

@@ -6,6 +6,8 @@ from app.domain.entities.company import Company
 from app.domain.entities.document import Document, DocumentType, ParsingStatus
 from app.domain.entities.document_chunk import ChunkMetadata, DocumentChunk
 from app.domain.entities.document_version import DocumentVersion
+from app.domain.entities.embedding import Embedding
+from app.domain.entities.embedding_manifest import EmbeddingManifest
 from app.domain.entities.financial_statement import (
     FinancialStatement,
     NormalizationAdjustment,
@@ -17,6 +19,7 @@ from app.domain.entities.financial_statement_version import (
 from app.domain.entities.parsing_manifest import ParsingManifest
 from app.domain.entities.ratio import Ratio
 from app.domain.entities.recommendation import Recommendation, RecommendationType
+from app.domain.entities.retrieval import RetrievalQuery, RetrievalResult
 from app.domain.entities.user import User, UserRole
 from app.domain.entities.valuation import (
     ComparableCompanyAssumptions,
@@ -35,6 +38,8 @@ __all__ = [
     "DocumentChunk",
     "DocumentType",
     "DocumentVersion",
+    "Embedding",
+    "EmbeddingManifest",
     "FinancialStatement",
     "FinancialStatementVersion",
     "NormalizationAdjustment",
@@ -43,6 +48,8 @@ __all__ = [
     "Ratio",
     "Recommendation",
     "RecommendationType",
+    "RetrievalQuery",
+    "RetrievalResult",
     "StatementType",
     "User",
     "UserRole",

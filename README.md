@@ -6,10 +6,10 @@ EquityIQ is a production-grade investment analysis and research platform built o
 
 ## Project Status
 
-- **Overall Progress**: **70% Complete** (7 / 10 Milestones completed)
+- **Overall Progress**: **80% Complete** (8 / 10 Milestones completed)
 - **Build Status**: **Passing** (Ruff, MyPy, Import-Linter green)
 - **Domain State**: **DOMAIN MODEL FROZEN** (Sealed contracts for downstream layers)
-- **Test Suite**: **70 tests passing** with clean coverage across domain, DB lifecycles, repositories, and API routes.
+- **Test Suite**: **72 tests passing** with clean coverage across domain, DB lifecycles, repositories, Celery pipelines, and API routes.
 
 ---
 
@@ -22,7 +22,8 @@ EquityIQ is a production-grade investment analysis and research platform built o
 ✅ **Company Management**: Row-isolated company registration, sorting, pagination filters, sector/ticker text search, and soft-delete duplicate restoration.  
 ✅ **Financial Data Foundation**: Secure document metadata uploads (limit 50MB, magic bytes validation for PDF/TXT/CSV), extensible validation engine, priority-based mapping normalization, statement version tracking, and workspace isolation.  
 ✅ **Document Intelligence Pipeline**: Layout-aware PDF and text parsing adapter using pdfplumber, Tesseract OCR fallback, paragraph-level and sentence-level semantic chunking with stable deterministic UUIDs (via uuid5), ParsingManifest metrics, and async Celery worker dispatching.  
-⏳ **RAG Pipeline**: Planned.  
+✅ **Vector Storage & Hybrid Search**: Local Hugging Face SentenceTransformers embedding adapter, disk-persisted FAISS CPU vector index, database-assisted strict tenant pre-filtering, SQLite FTS5 full-text keyword retrieval engine, Min-Max score normalization, and linear combination hybrid rank fusion.  
+⏳ **LLM Integration (RAG)**: Planned for Milestone 7.  
 ⏳ **AI Research Agent**: Planned.  
 ⏳ **Report Generation**: Planned.  
 
@@ -40,6 +41,8 @@ EquityIQ is a production-grade investment analysis and research platform built o
 | **Task Queue**| Celery / Redis | Async Parsing and Embeddings processing |
 | **Orchestration**| LangChain & LlamaIndex | Agent Tool Calling & Filing Table parsing |
 | **Vector DB** | FAISS (local, self-hosted) | Embedded Contextual Retrieval |
+| **Embeddings** | Hugging Face `all-MiniLM-L6-v2` | Local vector generation (384-dim) |
+| **Keyword DB** | SQLite FTS5 | BM25 Full-text search engine |
 | **Frontend** | React / Next.js (App Router) | Interactive User Interface |
 | **UI Styling** | Tailwind CSS / Material UI (MUI) | Design Tokens and Complex Primitives |
 
@@ -61,12 +64,12 @@ EquityIQ strictly enforces **Clean Architecture** boundaries where dependencies 
 
 1. **Domain Layer (`backend/app/domain/`)**: Framework-free definitions of entities (`Company`, `Document`, `FinancialStatement`, `Ratio`, `Valuation`, `Recommendation`, `User`, `Workspace`), value objects (`Ticker`, `Exchange`, `Money`, `FiscalPeriod`), domain Exceptions, and abstract Repository Protocols.
 2. **Application Layer (`backend/app/application/`)**: Coordinates business logic and orchestration services relying purely on domain abstractions.
-3. **Infrastructure Layer (`backend/app/infrastructure/`)**: Framework adapters implementing domain protocols (SQLAlchemy ORM mappings, repositories, security services, logging middleware).
+3. **Infrastructure Layer (`backend/app/infrastructure/`)**: Framework adapters implementing domain protocols (SQLAlchemy ORM mappings, repositories, security adapters, logging middleware, FAISS index, local embeddings).
 4. **API Layer (`backend/app/api/`)**: FastAPI endpoints converting REST payloads directly into domain services.
 
 ---
 
-## Core Engine Components (Milestone 4)
+## Core Engine Components
 
 ### Validation Engine
 The platform includes an extensible, rules-based `ValidationEngine` that coordinates statement sanity checks. Built as a pipeline of `ValidationRule` implementations, it runs check guards such as:
@@ -78,15 +81,19 @@ The platform includes an extensible, rules-based `ValidationEngine` that coordin
 
 ### Normalization Engine
 To support the "Canonical Data First" principle, the `NormalizationEngine` cleans and standardizes raw statement line items during ingestion. Mappings are defined via `NormalizationRule` models supporting:
-- **Alias**: The raw text key parsed from files (e.g. "Cash & Cash Equivalents", "Cash and cash equivalents").
+- **Alias**: The raw text key parsed from files (e.g. "Cash & Cash Equivalents").
 - **Canonical Name**: The standardized internal key (e.g. `cash_equivalents`).
 - **Statement Type & Category Restrictions**: Filters mapping applicability.
 - **Priority**: A precedence order ensuring that if multiple alias rules match, the highest priority rule wins.
 
-### Document & Statement Versioning
-The system maintains a comprehensive, immutable audit trail of all changes:
-- **Document Versions**: When a filing document's physical file is re-uploaded, the system retains a copy of the old file on disk and registers a `DocumentVersion` snapshot detailing who changed it, the reason for the change, and the timestamp.
-- **Financial Statement Versions**: Updates to statement figures (raw line items or adjustments) generate a `FinancialStatementVersion` snapshot of the previous values before applying changes, preserving historical records for recovery and audits.
+### Vector Storage & Hybrid Search Engine (Milestone 6)
+To enable semantic retrieval and contextual mapping, the search engine integrates:
+- **Local Embedding Provider**: Embeds chunks and query text locally using `all-MiniLM-L6-v2` to avoid external API calls.
+- **FAISS CPU Vector Store**: Uses `faiss.IndexFlatIP` (flat Inner Product) on L2-normalized vectors to execute exact Cosine Similarity calculations.
+- **Strict Tenant Isolation**: Implements Database-Assisted Pre-filtering. Relational metadata parameters are first resolved to a set of valid chunk IDs in SQLite, then passed into FAISS via `faiss.IDSelectorBatch` to guarantee that workspace boundaries are never crossed.
+- **SQLite FTS5 Keyword Engine**: Leverages SQLite's native FTS5 full-text module to retrieve keyword matches using BM25 ranking. Database triggers keep the virtual table in sync automatically during chunk insert/delete phases.
+- **Hybrid Score combination**: Blends semantic and keyword match lists by normalizing scores via Min-Max scaling and running a linear fusion:
+  $$\text{Score}_{\text{hybrid}} = \alpha \cdot \text{Score}_{\text{semantic}} + (1 - \alpha) \cdot \text{Score}_{\text{keyword}}$$
 
 ---
 
@@ -98,27 +105,18 @@ equityiq/
 │   ├── app/
 │   │   ├── domain/            # Pure Domain layer (Entities, value objects, protocols)
 │   │   ├── application/       # Use case orchestrations and business services
-│   │   ├── infrastructure/    # Adapters (SQLAlchemy, security, logging, external APIs)
+│   │   ├── infrastructure/    # Adapters (SQLAlchemy, local embeddings, FAISS, security)
 │   │   ├── api/               # FastAPI routers and route handlers
-│   │   └── workers/           # Celery async workers (Deferred)
+│   │   └── workers/           # Celery async workers executing parsing and vector indexing
 │   ├── tests/
-│   │   ├── unit/              # Fast unit tests for maths, rules, and security
-│   │   └── integration/       # Database integration and auth/workspace/company API tests
+│   │   ├── unit/              # Fast unit tests for maths, rules, vector store, and security
+│   │   └── integration/       # Database integration, auth, company, and hybrid search API tests
 │   ├── .import-linter.cfg     # Strict boundary constraint rules
 │   └── pyproject.toml         # Packaging, Ruff, and MyPy configurations
 ├── frontend/                  # React/Next.js/TS client application
 ├── infra/                     # Postgres and Redis docker configurations
 └── docs/                      # Technical specification plans, ADRs, and handovers
 ```
-
----
-
-## Documentation Links
-All core design plans and handovers are located inside the `docs/` folder:
-- [EquityIQ Build Specification](file:///c:/Users/Shrey/OneDrive/Desktop/Study%20material%20AI&DS/Projects/EquityIQ/docs/specifications/EquityIQ_BUILD_SPEC.md)
-- [Architecture Review ADR](file:///C:/Users/Shrey/.gemini/antigravity/brain/92c7678d-6005-486f-b20e-e4ab6bc03a4e/domain_architecture_review.md)
-- [Code Audit Report](file:///C:/Users/Shrey/.gemini/antigravity/brain/92c7678d-6005-486f-b20e-e4ab6bc03a4e/code_audit_report.md)
-- [Latest Session Handover](file:///c:/Users/Shrey/OneDrive/Desktop/Study%20material%20AI&DS/Projects/EquityIQ/docs/guides/session_handover.md)
 
 ---
 
@@ -180,7 +178,7 @@ python -m pytest backend/ --cov=app --cov-report=term-missing
 - [x] **Milestone 3C**: Workspace & Company Management (FastAPI + Row-Level Security)
 - [x] **Milestone 4**: Financial Data Foundation (Statement Ingestion & Pipelines)
 - [x] **Milestone 5**: Document Intelligence Pipeline (Asynchronous Parser Workers, OCR, & Chunk Extraction)
-- [ ] **Milestone 6**: Vector Storage Pipeline & Hybrid Search Retrieval
+- [x] **Milestone 6**: Vector Storage Pipeline & Hybrid Search Retrieval
 - [ ] **Milestone 7**: LLM Integration, Prompt-Injection Filters, Q&A Agent
 - [ ] **Milestone 8**: Sentiment Analysis & Scopes Recommendation Score
 - [ ] **Milestone 9**: Report Drafting & SSE Streaming Generation

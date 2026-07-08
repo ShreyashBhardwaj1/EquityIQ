@@ -8,6 +8,12 @@ from app.infrastructure.db.repositories.company_repo import SQLAlchemyCompanyRep
 from app.infrastructure.db.repositories.document_repo import (
     SQLAlchemyDocumentRepository,
 )
+from app.infrastructure.db.repositories.embedding_manifest_repo import (
+    SQLAlchemyEmbeddingManifestRepository,
+)
+from app.infrastructure.db.repositories.embedding_repo import (
+    SQLAlchemyEmbeddingRepository,
+)
 from app.infrastructure.db.repositories.parsing_manifest_repo import (
     SQLAlchemyParsingManifestRepository,
 )
@@ -27,6 +33,8 @@ __all__ = [
     "SQLAlchemyChunkRepository",
     "SQLAlchemyCompanyRepository",
     "SQLAlchemyDocumentRepository",
+    "SQLAlchemyEmbeddingManifestRepository",
+    "SQLAlchemyEmbeddingRepository",
     "SQLAlchemyFinancialStatementRepository",
     "SQLAlchemyParsingManifestRepository",
     "SQLAlchemyRefreshTokenRepository",

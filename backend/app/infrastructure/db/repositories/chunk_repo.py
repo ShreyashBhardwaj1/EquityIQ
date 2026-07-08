@@ -4,7 +4,7 @@ SQLAlchemy repository adapter for DocumentChunk.
 
 from uuid import UUID
 
-from sqlalchemy import delete, select
+from sqlalchemy import delete, select, text
 
 from app.domain.entities.document_chunk import ChunkMetadata, DocumentChunk
 from app.domain.interfaces.repositories import ChunkRepository
@@ -81,6 +81,16 @@ class SQLAlchemyChunkRepository(BaseRepository[DocumentChunkORM], ChunkRepositor
         orm = self._to_orm(chunk)
         self._add(orm)
         await self.session.flush()
+
+        if self.session.bind.dialect.name == "sqlite":
+            await self.session.execute(
+                text(
+                    "INSERT OR REPLACE INTO document_chunks_fts (content, chunk_id) VALUES (:content, :chunk_id)"
+                ),
+                {"content": chunk.content, "chunk_id": str(chunk.id)},
+            )
+            await self.session.flush()
+
         return self._to_domain(orm)
 
     async def save_batch(self, chunks: list[DocumentChunk]) -> None:
@@ -92,6 +102,15 @@ class SQLAlchemyChunkRepository(BaseRepository[DocumentChunkORM], ChunkRepositor
         orms = [self._to_orm(c) for c in chunks]
         self.session.add_all(orms)
         await self.session.flush()
+
+        if self.session.bind.dialect.name == "sqlite":
+            await self.session.execute(
+                text(
+                    "INSERT OR REPLACE INTO document_chunks_fts (content, chunk_id) VALUES (:content, :chunk_id)"
+                ),
+                [{"content": c.content, "chunk_id": str(c.id)} for c in chunks],
+            )
+            await self.session.flush()
 
     async def list_by_document(
         self, document_id: UUID, limit: int = 100, offset: int = 0
@@ -114,6 +133,17 @@ class SQLAlchemyChunkRepository(BaseRepository[DocumentChunkORM], ChunkRepositor
         """
         Deletes all chunks of a document.
         """
+        if self.session.bind.dialect.name == "sqlite":
+            await self.session.execute(
+                text(
+                    "DELETE FROM document_chunks_fts WHERE chunk_id IN ("
+                    "SELECT id FROM document_chunks WHERE document_id = :doc_id"
+                    ")"
+                ),
+                {"doc_id": str(document_id)},
+            )
+            await self.session.flush()
+
         query = delete(DocumentChunkORM).where(
             DocumentChunkORM.document_id == document_id
         )
@@ -128,3 +158,59 @@ class SQLAlchemyChunkRepository(BaseRepository[DocumentChunkORM], ChunkRepositor
         result = await self.session.execute(query)
         orm = result.scalar_one_or_none()
         return self._to_domain(orm) if orm else None
+
+    async def filter_chunk_ids(
+        self,
+        workspace_id: UUID,
+        company_id: UUID | None = None,
+        document_id: UUID | None = None,
+        document_type: str | None = None,
+        statement_type: str | None = None,
+        fiscal_year: int | None = None,
+        fiscal_period: str | None = None,
+    ) -> list[UUID]:
+        """
+        Filter chunk UUIDs matching metadata constraints.
+        """
+        query = select(DocumentChunkORM.id)
+
+        # Build strict tenancy filters matching json keys
+        filters = [
+            DocumentChunkORM.metadata_json["workspace_id"].as_string()
+            == str(workspace_id)
+        ]
+
+        if company_id:
+            filters.append(
+                DocumentChunkORM.metadata_json["company_id"].as_string()
+                == str(company_id)
+            )
+        if document_id:
+            filters.append(
+                DocumentChunkORM.metadata_json["document_id"].as_string()
+                == str(document_id)
+            )
+        if document_type:
+            filters.append(
+                DocumentChunkORM.metadata_json["document_type"].as_string()
+                == document_type
+            )
+        if statement_type:
+            filters.append(
+                DocumentChunkORM.metadata_json["statement_type"].as_string()
+                == statement_type
+            )
+        if fiscal_year:
+            filters.append(
+                DocumentChunkORM.metadata_json["fiscal_year"].as_integer()
+                == fiscal_year
+            )
+        if fiscal_period:
+            filters.append(
+                DocumentChunkORM.metadata_json["fiscal_period"].as_string()
+                == fiscal_period
+            )
+
+        query = query.where(*filters)
+        result = await self.session.execute(query)
+        return list(result.scalars().all())

@@ -40,9 +40,7 @@ def test_parse_pdf_file_layout_success(mock_exists, mock_pdf_open):
     # Setup mock page
     mock_page = MagicMock()
     mock_page.extract_text.return_value = "Page 1 main text content. " * 3
-    mock_page.extract_tables.return_value = [
-        [["Metric", "Val"], ["Revenue", "100"]]
-    ]
+    mock_page.extract_tables.return_value = [[["Metric", "Val"], ["Revenue", "100"]]]
 
     mock_pdf = MagicMock()
     mock_pdf.pages = [mock_page]

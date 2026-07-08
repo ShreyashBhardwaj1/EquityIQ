@@ -4,9 +4,9 @@ Unit tests for ChunkingService.
 
 from uuid import uuid4
 
+from app.application.services.chunking_service import ChunkingService
 from app.domain.entities.document import Document, DocumentType
 from app.domain.value_objects.fiscal_period import FiscalPeriod
-from app.application.services.chunking_service import ChunkingService
 
 
 def test_chunk_document_basic():

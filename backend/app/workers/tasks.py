@@ -285,8 +285,54 @@ async def execute_parsing_pipeline(document_id: UUID, workspace_id: UUID) -> Non
         )
         await doc_repo.save(completed_doc)
 
+        # 6. Generate vector embeddings and build search index
+        try:
+            from app.application.services.index_builder import IndexBuilder
+            from app.core.dependencies import get_embedding_provider, get_vector_store
+            from app.infrastructure.db.repositories.embedding_manifest_repo import (
+                SQLAlchemyEmbeddingManifestRepository,
+            )
+            from app.infrastructure.db.repositories.embedding_repo import (
+                SQLAlchemyEmbeddingRepository,
+            )
+
+            embedding_repo = SQLAlchemyEmbeddingRepository(session)
+            embedding_manifest_repo = SQLAlchemyEmbeddingManifestRepository(session)
+
+            provider = get_embedding_provider()
+            vector_store = get_vector_store()
+            index_builder = IndexBuilder(
+                embedding_provider=provider, vector_store=vector_store
+            )
+
+            # Rebuild workspace index first to clear any obsolete vector coordinates
+            await index_builder.rebuild_workspace_index(
+                workspace_id=workspace_id,
+                doc_repo=doc_repo,
+                chunk_repo=chunk_repo,
+                embedding_repo=embedding_repo,
+            )
+
+            # Generate new embeddings, save to DB, and add to FAISS index
+            await index_builder.build_index_for_document(
+                workspace_id=workspace_id,
+                document_id=document_id,
+                chunk_repo=chunk_repo,
+                embedding_repo=embedding_repo,
+                manifest_repo=embedding_manifest_repo,
+            )
+        except Exception as e:
+            err_msg = (
+                f"Failed to build vector search index for document {document_id}: {e!s}"
+            )
+            logger.exception(err_msg)
+            warnings.append(err_msg)
+            # Re-serialize parsing manifest with warning appended
+            manifest = manifest.model_copy(update={"warnings": warnings})
+            await manifest_repo.save(manifest)
+
         # Commit final transaction
         await session.commit()
         logger.info(
-            f"Parsing and chunking successfully completed for document: {document_id}"
+            f"Parsing, chunking, and vector indexing successfully completed for document: {document_id}"
         )

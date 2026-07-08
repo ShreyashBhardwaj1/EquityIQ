@@ -11,12 +11,21 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.application.services.company_service import CompanyService
 from app.application.services.document_service import DocumentService
+from app.application.services.embedding_service import EmbeddingService
 from app.application.services.financial_statement_service import (
     FinancialStatementService,
 )
+from app.application.services.hybrid_search_service import HybridSearchService
+from app.application.services.index_builder import IndexBuilder
+from app.application.services.index_manager import IndexManager
+from app.application.services.retrieval_service import RetrievalService
 from app.application.services.workspace_service import WorkspaceService
 from app.core.config import Settings, settings
 from app.domain.entities.user import User, UserRole
+from app.domain.interfaces.repositories import (
+    EmbeddingProvider,
+    VectorStore,
+)
 from app.infrastructure.db.manager import DatabaseManager, db_manager
 from app.infrastructure.db.repositories.chunk_repo import SQLAlchemyChunkRepository
 from app.infrastructure.db.repositories.company_repo import (
@@ -24,6 +33,12 @@ from app.infrastructure.db.repositories.company_repo import (
 )
 from app.infrastructure.db.repositories.document_repo import (
     SQLAlchemyDocumentRepository,
+)
+from app.infrastructure.db.repositories.embedding_manifest_repo import (
+    SQLAlchemyEmbeddingManifestRepository,
+)
+from app.infrastructure.db.repositories.embedding_repo import (
+    SQLAlchemyEmbeddingRepository,
 )
 from app.infrastructure.db.repositories.parsing_manifest_repo import (
     SQLAlchemyParsingManifestRepository,
@@ -104,6 +119,24 @@ def get_parsing_manifest_repository(
     Dependency provider yielding ParsingManifest repository.
     """
     return SQLAlchemyParsingManifestRepository(session)
+
+
+def get_embedding_repository(
+    session: AsyncSession = Depends(get_db_session),
+) -> SQLAlchemyEmbeddingRepository:
+    """
+    Dependency provider yielding Embedding repository.
+    """
+    return SQLAlchemyEmbeddingRepository(session)
+
+
+def get_embedding_manifest_repository(
+    session: AsyncSession = Depends(get_db_session),
+) -> SQLAlchemyEmbeddingManifestRepository:
+    """
+    Dependency provider yielding EmbeddingManifest repository.
+    """
+    return SQLAlchemyEmbeddingManifestRepository(session)
 
 
 def get_health_service(
@@ -301,3 +334,94 @@ def require_role(allowed_roles: list[UserRole]) -> Callable[[User], User]:
         return current_user
 
     return role_dependency
+
+
+# Global cached provider instances to avoid reloading weights repeatedly
+_embedding_provider = None
+_vector_store = None
+
+
+def get_embedding_provider() -> EmbeddingProvider:
+    """
+    Dependency provider yielding the singleton EmbeddingProvider model instance.
+    """
+    global _embedding_provider
+    if _embedding_provider is None:
+        from app.infrastructure.embeddings.sentence_transformer_adapter import (
+            SentenceTransformerAdapter,
+        )
+
+        _embedding_provider = SentenceTransformerAdapter()
+    return _embedding_provider
+
+
+def get_vector_store() -> VectorStore:
+    """
+    Dependency provider yielding the singleton VectorStore FAISS index wrapper.
+    """
+    global _vector_store
+    if _vector_store is None:
+        from app.infrastructure.vector_store.faiss_vector_store import FaissVectorStore
+
+        _vector_store = FaissVectorStore()
+    return _vector_store
+
+
+def get_index_manager(
+    vector_store: VectorStore = Depends(get_vector_store),
+) -> IndexManager:
+    """
+    Dependency provider yielding the IndexManager service.
+    """
+    from app.application.services.index_manager import IndexManager
+
+    return IndexManager(vector_store)
+
+
+def get_index_builder(
+    embedding_provider: EmbeddingProvider = Depends(get_embedding_provider),
+    vector_store: VectorStore = Depends(get_vector_store),
+) -> IndexBuilder:
+    """
+    Dependency provider yielding the IndexBuilder service.
+    """
+    from app.application.services.index_builder import IndexBuilder
+
+    return IndexBuilder(embedding_provider, vector_store)
+
+
+def get_embedding_service(
+    embedding_provider: EmbeddingProvider = Depends(get_embedding_provider),
+    index_builder: IndexBuilder = Depends(get_index_builder),
+) -> EmbeddingService:
+    """
+    Dependency provider yielding the EmbeddingService.
+    """
+    from app.application.services.embedding_service import EmbeddingService
+
+    return EmbeddingService(embedding_provider, index_builder)
+
+
+def get_retrieval_service(
+    embedding_provider: EmbeddingProvider = Depends(get_embedding_provider),
+    vector_store: VectorStore = Depends(get_vector_store),
+    chunk_repo: SQLAlchemyChunkRepository = Depends(get_chunk_repository),
+) -> RetrievalService:
+    """
+    Dependency provider yielding the RetrievalService.
+    """
+    from app.application.services.retrieval_service import RetrievalService
+
+    return RetrievalService(embedding_provider, vector_store, chunk_repo)
+
+
+def get_hybrid_search_service(
+    retrieval_service: RetrievalService = Depends(get_retrieval_service),
+    chunk_repo: SQLAlchemyChunkRepository = Depends(get_chunk_repository),
+) -> HybridSearchService:
+    """
+    Dependency provider yielding the HybridSearchService.
+    """
+    from app.application.services.hybrid_search_service import HybridSearchService
+
+    return HybridSearchService(retrieval_service, chunk_repo)

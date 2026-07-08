@@ -59,6 +59,26 @@ class Settings(BaseSettings):
         default=300,
         description="Timeout duration in seconds for parser execution",
     )
+    EMBEDDING_MODEL_NAME: str = Field(
+        default="all-MiniLM-L6-v2",
+        description="Hugging Face model used for local vector embeddings",
+    )
+    EMBEDDING_DIMENSION: int = Field(
+        default=384,
+        description="Coordinate length dimensions of output vectors",
+    )
+    EMBEDDING_DEVICE: str = Field(
+        default="cpu",
+        description="Target hardware device ('cpu', 'cuda') for model execution",
+    )
+    EMBEDDING_BATCH_SIZE: int = Field(
+        default=32,
+        description="Batch size for generating document embeddings",
+    )
+    VECTOR_INDEX_VERSION: str = Field(
+        default="v1",
+        description="Directory versioning identifier for indices storage",
+    )
 
 
 # Global settings instance

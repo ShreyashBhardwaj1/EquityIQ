@@ -12,6 +12,7 @@ from app.api.v1.company import router as company_router
 from app.api.v1.document import router as document_router
 from app.api.v1.financial_statement import router as financial_statement_router
 from app.api.v1.health import router as health_router
+from app.api.v1.search import router as search_router
 from app.api.v1.workspace import router as workspace_router
 from app.core.config import settings
 from app.infrastructure.db.manager import db_manager
@@ -54,3 +55,4 @@ app.include_router(workspace_router)
 app.include_router(company_router)
 app.include_router(document_router)
 app.include_router(financial_statement_router)
+app.include_router(search_router)

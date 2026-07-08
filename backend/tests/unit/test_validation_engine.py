@@ -143,7 +143,9 @@ def test_custom_rule_extension():
     """Verify that a custom ValidationRule can be registered and executed in ValidationEngine."""
 
     class CustomNonNegativeRevenueRule:
-        def validate(self, statement: FinancialStatement, context: ValidationContext) -> None:
+        def validate(
+            self, statement: FinancialStatement, context: ValidationContext
+        ) -> None:
             revenue = statement.normalized_line_items.get("revenue", 0.0)
             if revenue < 0.0:
                 raise EntityValidationError("Revenue cannot be negative.")

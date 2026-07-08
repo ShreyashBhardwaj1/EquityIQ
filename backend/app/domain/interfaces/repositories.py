@@ -9,6 +9,8 @@ from app.domain.entities.company import Company
 from app.domain.entities.document import Document
 from app.domain.entities.document_chunk import DocumentChunk
 from app.domain.entities.document_version import DocumentVersion
+from app.domain.entities.embedding import Embedding
+from app.domain.entities.embedding_manifest import EmbeddingManifest
 from app.domain.entities.financial_statement import FinancialStatement
 from app.domain.entities.financial_statement_version import (
     FinancialStatementVersion,
@@ -177,6 +179,19 @@ class ChunkRepository(Protocol):
         """Retrieve a specific chunk by its ID."""
         ...
 
+    async def filter_chunk_ids(
+        self,
+        workspace_id: UUID,
+        company_id: UUID | None = None,
+        document_id: UUID | None = None,
+        document_type: str | None = None,
+        statement_type: str | None = None,
+        fiscal_year: int | None = None,
+        fiscal_period: str | None = None,
+    ) -> list[UUID]:
+        """Filter chunk UUIDs matching metadata constraints."""
+        ...
+
 
 class ParsingManifestRepository(Protocol):
     """Abstract interface for ParsingManifest data persistence operations."""
@@ -249,4 +264,109 @@ class WorkspaceRepository(Protocol):
         self, user_id: UUID
     ) -> list[WorkspaceMembership]:
         """List all memberships for a user."""
+        ...
+
+
+class EmbeddingRepository(Protocol):
+    """Abstract interface for Embedding data persistence operations."""
+
+    async def save(self, embedding: Embedding) -> Embedding:
+        """Save a single embedding entity."""
+        ...
+
+    async def save_batch(self, embeddings: list[Embedding]) -> None:
+        """Save a batch of embedding entities."""
+        ...
+
+    async def get_by_chunk(self, chunk_id: UUID) -> Embedding | None:
+        """Retrieve an embedding by its associated chunk ID."""
+        ...
+
+    async def get_by_chunks(self, chunk_ids: list[UUID]) -> list[Embedding]:
+        """Retrieve multiple embeddings by their associated chunk IDs."""
+        ...
+
+    async def delete_by_document(self, document_id: UUID) -> None:
+        """Delete all embedding records associated with a document's chunks."""
+        ...
+
+
+class EmbeddingManifestRepository(Protocol):
+    """Abstract interface for EmbeddingManifest data persistence operations."""
+
+    async def save(self, manifest: EmbeddingManifest) -> EmbeddingManifest:
+        """Save an embedding execution manifest record."""
+        ...
+
+    async def get_by_id(self, manifest_id: UUID) -> EmbeddingManifest | None:
+        """Retrieve a specific embedding manifest by its ID."""
+        ...
+
+    async def get_by_workspace(self, workspace_id: UUID) -> list[EmbeddingManifest]:
+        """List all embedding manifests under a workspace."""
+        ...
+
+    async def delete_by_workspace(self, workspace_id: UUID) -> None:
+        """Delete all embedding manifests associated with a workspace."""
+        ...
+
+
+class EmbeddingProvider(Protocol):
+    """Abstract protocol for text embedding generator models."""
+
+    async def embed_query(self, text: str) -> list[float]:
+        """Generate a vector embedding for a single text query."""
+        ...
+
+    async def embed_documents(self, texts: list[str]) -> list[list[float]]:
+        """Generate vector embeddings for a list of document strings."""
+        ...
+
+    def get_model_name(self) -> str:
+        """Return the unique string name of the active model."""
+        ...
+
+    def get_dimension(self) -> int:
+        """Return the embedding dimension coordinate size."""
+        ...
+
+
+class VectorStore(Protocol):
+    """Abstract protocol for vector indexing and semantic similarity searches."""
+
+    async def add_embeddings(
+        self, workspace_id: UUID, embeddings: list[Embedding]
+    ) -> None:
+        """Add a batch of vector embeddings to the index context."""
+        ...
+
+    async def search(
+        self,
+        workspace_id: UUID,
+        query_vector: list[float],
+        limit: int,
+        allowed_chunk_ids: list[UUID] | None = None,
+    ) -> list[tuple[UUID, float]]:
+        """
+        Execute vector similarity search. Returns a list of (chunk_id, score/distance).
+        If allowed_chunk_ids is provided, restricts search only to those IDs (strict pre-filtering).
+        """
+        ...
+
+    async def delete_by_document(
+        self, workspace_id: UUID, document_id: UUID, chunk_ids: list[UUID]
+    ) -> None:
+        """Delete a set of chunk vector embeddings from the index."""
+        ...
+
+    async def save_index(self, workspace_id: UUID) -> None:
+        """Serialize and persist the index to storage."""
+        ...
+
+    async def load_index(self, workspace_id: UUID) -> None:
+        """Deserialize and load the index from storage."""
+        ...
+
+    async def clear(self, workspace_id: UUID) -> None:
+        """Clear/reset all vectors in the index."""
         ...

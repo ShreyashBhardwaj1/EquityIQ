@@ -7,6 +7,8 @@ from app.infrastructure.db.models.company import CompanyORM
 from app.infrastructure.db.models.document import DocumentORM
 from app.infrastructure.db.models.document_chunk import DocumentChunkORM
 from app.infrastructure.db.models.document_version import DocumentVersionORM
+from app.infrastructure.db.models.embedding import EmbeddingORM
+from app.infrastructure.db.models.embedding_manifest import EmbeddingManifestORM
 from app.infrastructure.db.models.financial_statement import FinancialStatementORM
 from app.infrastructure.db.models.financial_statement_version import (
     FinancialStatementVersionORM,
@@ -23,6 +25,8 @@ __all__ = [
     "DocumentChunkORM",
     "DocumentORM",
     "DocumentVersionORM",
+    "EmbeddingManifestORM",
+    "EmbeddingORM",
     "FinancialStatementORM",
     "FinancialStatementVersionORM",
     "ParsingManifestORM",
