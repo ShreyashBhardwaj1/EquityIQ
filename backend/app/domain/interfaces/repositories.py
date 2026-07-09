@@ -6,6 +6,12 @@ from typing import Protocol
 from uuid import UUID
 
 from app.domain.entities.company import Company
+from app.domain.entities.conversation import (
+    Citation,
+    Conversation,
+    ConversationMessage,
+    LLMRequest,
+)
 from app.domain.entities.document import Document
 from app.domain.entities.document_chunk import DocumentChunk
 from app.domain.entities.document_version import DocumentVersion
@@ -369,4 +375,58 @@ class VectorStore(Protocol):
 
     async def clear(self, workspace_id: UUID) -> None:
         """Clear/reset all vectors in the index."""
+        ...
+
+
+class ConversationRepository(Protocol):
+    """Abstract interface for Conversation data persistence operations."""
+
+    async def get(
+        self, conversation_id: UUID, workspace_id: UUID | None = None
+    ) -> Conversation | None:
+        """Retrieve a conversation by ID, optionally scoped to workspace."""
+        ...
+
+    async def save(self, conversation: Conversation) -> Conversation:
+        """Save or update a conversation session."""
+        ...
+
+    async def list_by_workspace(
+        self, workspace_id: UUID, limit: int = 50, offset: int = 0
+    ) -> list[Conversation]:
+        """List active conversations scoped to a workspace."""
+        ...
+
+    async def delete(
+        self, conversation_id: UUID, workspace_id: UUID | None = None
+    ) -> None:
+        """Delete/archive a conversation and all its messages/citations."""
+        ...
+
+    async def get_messages(self, conversation_id: UUID) -> list[ConversationMessage]:
+        """Retrieve all messages for a conversation session in chronological order."""
+        ...
+
+    async def save_message(self, message: ConversationMessage) -> ConversationMessage:
+        """Save a new message turn inside a conversation session."""
+        ...
+
+    async def soft_delete_messages(self, message_ids: list[UUID]) -> None:
+        """Soft-delete a list of messages by their identifiers."""
+        ...
+
+    async def save_telemetry(self, telemetry: LLMRequest) -> LLMRequest:
+        """Save a new LLM request execution telemetry record."""
+        ...
+
+
+class CitationRepository(Protocol):
+    """Abstract interface for Citation data persistence operations."""
+
+    async def save_batch(self, citations: list[Citation]) -> None:
+        """Save a batch of citations associated with a message."""
+        ...
+
+    async def list_by_message(self, message_id: UUID) -> list[Citation]:
+        """List citations linked to an assistant message."""
         ...

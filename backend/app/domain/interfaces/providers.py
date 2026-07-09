@@ -110,3 +110,11 @@ class VectorStore(Protocol):
     async def delete_by_document(self, document_id: UUID) -> None:
         """Remove all embedded chunks belonging to a document."""
         ...
+
+
+class TokenizerProvider(Protocol):
+    """Abstract interface for token count calculations."""
+
+    def count_tokens(self, text: str) -> int:
+        """Count the number of tokens in a string."""
+        ...

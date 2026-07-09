@@ -6,10 +6,10 @@ EquityIQ is a production-grade investment analysis and research platform built o
 
 ## Project Status
 
-- **Overall Progress**: **80% Complete** (8 / 10 Milestones completed)
+- **Overall Progress**: **90% Complete** (9 / 10 Milestones completed)
 - **Build Status**: **Passing** (Ruff, MyPy, Import-Linter green)
 - **Domain State**: **DOMAIN MODEL FROZEN** (Sealed contracts for downstream layers)
-- **Test Suite**: **72 tests passing** with clean coverage across domain, DB lifecycles, repositories, Celery pipelines, and API routes.
+- **Test Suite**: **84 tests passing** with 87% statement coverage across domain, DB lifecycles, repositories, Celery pipelines, RAG, and API routes.
 
 ---
 
@@ -23,9 +23,9 @@ EquityIQ is a production-grade investment analysis and research platform built o
 ✅ **Financial Data Foundation**: Secure document metadata uploads (limit 50MB, magic bytes validation for PDF/TXT/CSV), extensible validation engine, priority-based mapping normalization, statement version tracking, and workspace isolation.  
 ✅ **Document Intelligence Pipeline**: Layout-aware PDF and text parsing adapter using pdfplumber, Tesseract OCR fallback, paragraph-level and sentence-level semantic chunking with stable deterministic UUIDs (via uuid5), ParsingManifest metrics, and async Celery worker dispatching.  
 ✅ **Vector Storage & Hybrid Search**: Local Hugging Face SentenceTransformers embedding adapter, disk-persisted FAISS CPU vector index, database-assisted strict tenant pre-filtering, SQLite FTS5 full-text keyword retrieval engine, Min-Max score normalization, and linear combination hybrid rank fusion.  
-⏳ **LLM Integration (RAG)**: Planned for Milestone 7.  
-⏳ **AI Research Agent**: Planned.  
-⏳ **Report Generation**: Planned.  
+✅ **LLM Integration (RAG)**: Complete multi-turn conversation memory, XML context assembly, token budgeting, prompt injection guards, Gemini 2.5 Pro/Flash adapter integration, response validation, deterministic grounding scoring, and telemetry tracking.  
+⏳ **Financial Intelligence & Recommendation**: Planned for Milestone 8.  
+⏳ **Report Drafting & SSE Streaming**: Planned for Milestone 9.  
 
 ---
 
@@ -39,12 +39,12 @@ EquityIQ is a production-grade investment analysis and research platform built o
 | **Database** | SQLite (dev/test) / PostgreSQL (prod) | Relational Storage & ORM |
 | **Migrations**| Alembic | DB Schema Migrations |
 | **Task Queue**| Celery / Redis | Async Parsing and Embeddings processing |
-| **Orchestration**| LangChain & LlamaIndex | Agent Tool Calling & Filing Table parsing |
+| **AI Provider**| Gemini 2.5 Pro (Primary) / Gemini 2.5 Flash (Fallback) | natural language synthesis, summaries, and citations |
 | **Vector DB** | FAISS (local, self-hosted) | Embedded Contextual Retrieval |
 | **Embeddings** | Hugging Face `all-MiniLM-L6-v2` | Local vector generation (384-dim) |
 | **Keyword DB** | SQLite FTS5 | BM25 Full-text search engine |
 | **Frontend** | React / Next.js (App Router) | Interactive User Interface |
-| **UI Styling** | Tailwind CSS / Material UI (MUI) | Design Tokens and Complex Primitives |
+| **UI Styling** | Tailwind CSS | Design Tokens and Complex Primitives |
 
 ---
 
@@ -94,6 +94,14 @@ To enable semantic retrieval and contextual mapping, the search engine integrate
 - **SQLite FTS5 Keyword Engine**: Leverages SQLite's native FTS5 full-text module to retrieve keyword matches using BM25 ranking. Database triggers keep the virtual table in sync automatically during chunk insert/delete phases.
 - **Hybrid Score combination**: Blends semantic and keyword match lists by normalizing scores via Min-Max scaling and running a linear fusion:
   $$\text{Score}_{\text{hybrid}} = \alpha \cdot \text{Score}_{\text{semantic}} + (1 - \alpha) \cdot \text{Score}_{\text{keyword}}$$
+
+### LLM & RAG Subsystem (Milestone 7)
+Coordinates prompt injection guards, context pruning, response validation, confidence/grounding calculations, and explainable citations:
+- **Prompt Injection Guard**: Detects and rejects user input overrides, system instruction leaks, or XML injections.
+- **Token Budget Manager**: Prunes conversation turns and context chunks down to a 20,000 token limit.
+- **Response Validator**: Matches output sentences to source contexts, flagging dangling citations or ungrounded numeric metrics.
+- **Confidence & Grounding Score**: Deteministic calculation of document similarity, citation coverage, source agreement, and sentence-level citation density.
+- **LLM Telemetry ORM Model**: Persists token count metrics and service latency logs inside `llm_requests` for analytics without caching query inputs.
 
 ---
 
@@ -179,7 +187,7 @@ python -m pytest backend/ --cov=app --cov-report=term-missing
 - [x] **Milestone 4**: Financial Data Foundation (Statement Ingestion & Pipelines)
 - [x] **Milestone 5**: Document Intelligence Pipeline (Asynchronous Parser Workers, OCR, & Chunk Extraction)
 - [x] **Milestone 6**: Vector Storage Pipeline & Hybrid Search Retrieval
-- [ ] **Milestone 7**: LLM Integration, Prompt-Injection Filters, Q&A Agent
+- [x] **Milestone 7**: LLM Integration, Prompt-Injection Filters, Q&A Agent
 - [ ] **Milestone 8**: Sentiment Analysis & Scopes Recommendation Score
 - [ ] **Milestone 9**: Report Drafting & SSE Streaming Generation
 - [ ] **Milestone 10**: Frontend Application UI Implementation

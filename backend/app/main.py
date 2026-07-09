@@ -8,6 +8,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from app.api.v1.auth import router as auth_router
+from app.api.v1.chat import router as chat_router
 from app.api.v1.company import router as company_router
 from app.api.v1.document import router as document_router
 from app.api.v1.financial_statement import router as financial_statement_router
@@ -56,3 +57,4 @@ app.include_router(company_router)
 app.include_router(document_router)
 app.include_router(financial_statement_router)
 app.include_router(search_router)
+app.include_router(chat_router)

@@ -95,9 +95,18 @@ class HybridSearchService:
 
         # Step 6: Load chunk texts and metadata details
         results = []
-        for cid, score in top_candidates:
+        for idx, (cid, score) in enumerate(top_candidates, 1):
             chunk = await self.chunk_repo.get(cid)
             if chunk:
+                retrieved_sem_score = norm_sem.get(cid, None)
+                retrieved_key_score = norm_key.get(cid, None)
+                if cid in norm_sem and cid in norm_key:
+                    method = "hybrid"
+                elif cid in norm_sem:
+                    method = "semantic"
+                else:
+                    method = "keyword"
+
                 # Package domain result
                 results.append(
                     RetrievalResult(
@@ -114,6 +123,11 @@ class HybridSearchService:
                             "statement_type": chunk.metadata.statement_type,
                             "fiscal_year": chunk.metadata.fiscal_year,
                             "fiscal_period": chunk.metadata.fiscal_period,
+                            "rank": idx,
+                            "semantic_score": retrieved_sem_score,
+                            "keyword_score": retrieved_key_score,
+                            "hybrid_score": score,
+                            "retrieval_method": method,
                         },
                     )
                 )

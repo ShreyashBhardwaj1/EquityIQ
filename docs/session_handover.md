@@ -1,39 +1,38 @@
-# Session Handover: Milestone 5 to Milestone 6
+# Session Handover: Milestone 7 to Milestone 8
 
 ## 1. Current Repository State
-*   **Version Tag**: `v0.7.0-document-intelligence`
-*   **Status**: Stable, green, reformatted, and type-checked.
-*   **Test Suite**: 70 tests passing with coverage.
-*   **Linter & Formatter**: Ruff checks passed, 108 backend files reformatted.
-*   **MyPy**: Success (0 issues found across 108 files).
+*   **Version Tag**: `v0.9.0-rag-llm-integration`
+*   **Status**: Stable, verified, reformatted, and type-checked.
+*   **Test Suite**: 84 tests passing with 87% statement coverage.
+*   **Linter & Formatter**: Ruff checks passed cleanly, format check green.
+*   **MyPy**: Success (0 issues found across 143 source files).
 *   **Import Linter**: Domain boundary kept (0 contracts broken).
 
-## 2. Completed Work (Milestone 5)
-*   **PDF Ingestion & Layout Parsing**: Built `PDFParser` in `pdf_parser.py` using `pdfplumber` to extract native text per page and convert tables to clean Markdown format.
-*   **OCR Graceful Fallback**: Traps pytesseract import or executable binary exceptions, writing warnings to database parsing manifests instead of failing parsing attempts.
-*   **Plain-Text Fallback**: Ingests raw text directly if the document is not a PDF or if the PDF binary structure is corrupt.
-*   **Paragraph Chunker**: Splits raw pages into paragraphs/sentences based on configured size and overlap limits, tracking active section headers.
-*   **Stable Chunk Identities**: Engineered deterministic UUIDs via `uuid.uuid5` utilizing the parent `document.id` as the namespace and `chunk_index` as the name.
-*   **Extensible Chunk Validation**: Deployed `ChunkValidator` checking batch ordering, empty chunks, duplicates, metadata completeness, and size limit checks before database writes.
-*   **Celery Worker Integration**: Orchestrated parsing as an asynchronous background worker pipeline, including dynamic status transitions (`PENDING` -> `PROCESSING` -> `COMPLETED`/`FAILED`).
-*   **API Routes**:
-    *   `POST /documents/{id}/parse` (queue background parse)
-    *   `POST /documents/{id}/reprocess` (queue reprocess and increment `parse_version`)
-    *   `GET /documents/{id}/chunks` (fetch chunks with workspace scoping)
+## 2. Completed Work (Milestone 7)
+*   **Gemini Provider Adapter**: Created `GeminiAdapter` wrapping the official Google GenAI SDK. Sets **Gemini 2.5 Pro** as the primary synthesis engine and automatically hot-swaps to **Gemini 2.5 Flash** if connection, quota, or network failures occur.
+*   **Safety & Compliance Guards**: Deployed `PromptInjectionGuard` scanning user inputs and grounding context chunks for malicious patterns (instruction extraction, role-override, or XML injection).
+*   **Context & Token Optimization**: Engineered `ContextAssembler` to group adjacent sequence chunks within the same document section, and `TokenBudgetManager` to audit and prune chat history turns and retrieved chunks under a 20,000 token limit.
+*   **Explainable Telemetry & Schema**: Added `LLMRequest` model and `llm_requests` table tracking latency, token usage, model fallbacks, and scores. Extended citations with retrieval metrics (`rank`, `semantic_score`, `keyword_score`, `hybrid_score`, and `retrieval_method`).
+*   **Deterministic Evaluation Scorer**: Exposed a sentence-level `grounding_score` measuring exactly the citation density ratio, along with a composite `confidence_score` combining semantic similarity, chunk density, coverage, and source agreement.
+*   **API Chat Endpoints**:
+    *   `POST /chat/ask`: Stateless grounding checks returning formatted responses, confidence/grounding scores, and citation mappings.
+    *   `POST /chat/chat`: Stateful conversation sessions saving queries, responses, and citations, with Celery background jobs summarizing turns if history exceeds 10 turns.
 
-## 3. Starting Point for Milestone 6
-Tomorrow's goal is **Milestone 6 — Vector Storage Pipeline & Hybrid Search Retrieval**.
+## 3. Starting Point for Milestone 8
+Tomorrow's goal is **Milestone 8 — Financial Intelligence & Recommendation Engine**.
 *   **Scope**:
-    1.  Design/integrate local embedding generator services (such as Hugging Face `Sentence-Transformers`).
-    2.  Integrate local FAISS database adapters for self-hosted dense vectors.
-    3.  Develop index persistence and workspace isolation rules for the vector store.
-    4.  Implement a hybrid search resolver combining dense vector search and keyword search (BM25 or text database filtering) with workspace filtering.
+    1.  Implement deterministic financial analysis rules in the domain engine (calculating key ratios, scoring liquidity, profitability, leverage, and efficiency).
+    2.  Integrate sentiment analysis pipeline parsing news, corporate filings, and analyst notes.
+    3.  Develop a recommendation engine matching financial indicators and sentiment score to scoring rubrics to generate stock signals (Buy, Hold, Sell).
+    4.  Expose API endpoints for company rating scores and recommendation summaries.
 
 ## 4. Key Assumptions
-*   **In-Memory FAISS Vector Store**: We assume a self-hosted local FAISS vector store is sufficient for development/testing stages, matching the constructor-injected interface pattern.
-*   **Celery Configuration**: Development tasks run eagerly on a separate worker thread within integration tests, but will run on a separate container queue in staging/production setups.
+*   **Model Provider Access**: Gemini API keys are mocked to `mock-testing-key` in the test environment configuration to run the suite offline, and must resolve to valid API keys in development/production.
+*   **Database URL**: SQLite is the primary database driver for testing. PostgreSQL is configured as the target database for staging/production.
 
 ## 5. Technical Debt Register
-1.  **`datetime.utcnow()` Deprecations**: Hashing and database mapping layers contain calls to `datetime.utcnow()`, raising deprecation warnings under Python 3.12+.
-2.  **Local Storage Directory**: Documents are currently uploaded to local disk storage (`storage/uploads`). Production will require cloud block storage (e.g. AWS S3).
-3.  **OCR Fallback Warning Logging**: Pytesseract logs standard console warnings when the system lacks a local Tesseract binary. This is standard behavior.
+1.  **`datetime.utcnow()` Deprecations**: Hashing, database, and index building layers contain calls to `datetime.utcnow()`, raising deprecation warnings under Python 3.12+.
+2.  **Local Storage Directory**: Documents and FAISS index files are written to local disk directories (`storage/uploads` and `storage/indices`). In production, this requires cloud block storage (e.g. AWS S3).
+3.  **Prompt Response Caching**: Serve cached answers for repeated queries to save LLM tokens.
+4.  **Multi-Provider Registry**: Support dynamic model routing (Gemini, Claude, GPT, Ollama).
+5.  **Token-Level Streaming**: Stream tokens in real-time from the API router using Server-Sent Events (SSE) (Scheduled for Milestone 9).

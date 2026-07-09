@@ -1,60 +1,74 @@
-# GitHub Release Assets: v0.7.0-document-intelligence
+# GitHub Release Assets: v0.9.0-rag-llm-integration
 
 ## Release Title
-EquityIQ v0.7.0 — Document Intelligence Pipeline & Async Parser Workers
+EquityIQ v0.9.0 — LLM Integration & Retrieval-Augmented Generation (RAG)
 
 ## Executive Summary
-This release establishes the deterministic Document Intelligence Pipeline, introducing background layout-aware document ingestion and processing workflows. Filings (PDF, TXT, CSV) are parsed page-by-page, with layout tables formatted to Markdown, segmenting text into semantic paragraphs and validating constraints before batch persistence. The pipeline is executed asynchronously utilizing Celery background tasks and Redis queues.
+This release implements the Retrieval-Augmented Generation (RAG) and Large Language Model (LLM) integration layer. Utilizing Google GenAI SDK, the system binds workspace data queries to Gemini 2.5 Pro (with automatic Gemini 2.5 Flash fallback). Safety boundaries are enforced via Prompt Injection Guards, Token Budget Managers (20k ceiling), Response Validators, and deterministic Grounding/Confidence scorers. Latency and token usage telemetry are persisted in the database.
 
 ---
 
 ## Architecture Highlights
-*   **Decoupled Parsers**: PDF extraction is encapsulated behind a clean, framework-independent parser interface utilizing `pdfplumber` and optional `pytesseract` OCR fallbacks.
-*   **Stable Chunk Identities**: Chunk UUIDs are generated deterministically using `uuid.uuid5` scoped by the parent document ID. Reprocessing same contents yields identical IDs, preventing index fragmentation.
-*   **Extensible Batch Validation**: Deployed validation engine check guards to verify chunk sequences, unique contents, metadata completeness, and maximum size limits.
-*   **Asynchronous Processing**: Background Celery worker tasks isolate resource-intensive layout parsing and chunk extraction from web server requests.
+*   **Dual-Model Provider Fallback**: Uses Gemini 2.5 Pro as the primary reasoning engine, automatically routing to Gemini 2.5 Flash if connection, quota, or rate limits fail.
+*   **Prompt Injection Guard**: Validates user queries and source text for system instruction overrides, role switching, or XML injection attempts.
+*   **Context & Token Budgets**: Groups adjacent sequence chunks into unified XML blocks and prunes older chat turns and context chunks under a 20,000 token limit.
+*   **Explainable Telemetry & Schema**: Records latencies, token counts, model fallbacks, and scores in an `llm_requests` table. Citations are enriched with `rank`, similarity scores, and retrieval methods.
+*   **Deterministic Scorers**: Sentence-level grounding density calculations and multi-factor confidence verification.
 
 ---
 
 ## What's New
-*   **PDF Parsing**: Layout preservation and Markdown formatting of tables.
-*   **Plain-Text / Corrupted Fallback**: Graceful fallback to raw text extraction if the PDF is corrupt or has a non-pdf extension.
-*   **Extensible Validator**: Structural ordering, duplicate text, empty content, and metadata validations.
-*   **Async Operations**: Dispatched task pipelines under Celery background workers.
-*   **API Routes**: Dedicated endpoints for parsing, re-runs, and listing scoping.
+*   **Gemini Integration**: Adapter wrapping GenAI SDK with Pro/Flash failover.
+*   **Externalized Prompts**: Prompts are stored in markdown templates under `backend/app/prompts/` and loaded dynamically.
+*   **Grounding evaluation**: Exposes `grounding_score` measuring the ratio of cited sentences in responses.
+*   **API Routes**: 
+    *   `POST /chat/ask`: Stateless Q&A returning grounding checks.
+    *   `POST /chat/chat`: Stateful conversation management.
+    *   `GET /chat/conversation/{id}`: Scoped message turn fetch.
+    *   `DELETE /chat/conversation/{id}`: Conversation deletion.
 
 ---
 
 ## Engineering Metrics
-*   **Verification Status**: 70 tests passing (100% green).
-*   **MyPy Validation**: Checked 108 source files with zero errors.
-*   **Ruff Quality**: Clean lints and formatting (108 files formatted).
+*   **Verification Status**: 84 tests passing (100% green).
+*   **MyPy Validation**: Checked 143 source files with zero errors.
+*   **Ruff Quality**: Clean lints and formatting.
 *   **Import Contracts**: Domain layer remains completely clean (0 architecture contract violations).
+*   **Test Coverage**: 87% overall statement coverage.
 
 ---
 
 ## Lessons Learned
-1.  **Event Loop Conflicts under Test Eager Runs**: Re-evaluating `loop.run_until_complete` calls during eager Celery runs under FastAPI request event loops. Resolved via a thread-spawning runner fallback.
-2.  **Strict PDF Parsers**: PDF metadata checks in `pdfplumber` reject plain text strings; resolved by building defensive fallback reads.
+1.  **SQLite Testing Path Resolution**: Pytest execution from root failed to locate migrated tables in `backend/test.db` until the environment path or working directory was adjusted.
+2.  **MyPy Variable Reassignment Strictness**: Python variables reassigned to union types (`float` to `float | None`) must be renamed to maintain strict typing verification.
 
 ---
 
 ## Breaking Changes
 *   None. Backward compatibility has been fully preserved.
 
+---
+
 ## Upgrade Notes
-*   Ensure Redis is running (`redis://localhost:6379/0`) before starting backend celery workers.
-*   Start the celery worker pool with:
+*   Ensure the database migrations are upgraded to head (`b6c989ff64f7`).
+*   Ensure environment variables `GEMINI_API_KEY` are configured.
+*   Run database migrations:
     ```bash
-    celery -A app.workers.celery_app.celery_app worker --loglevel=info
+    alembic upgrade head
     ```
-*   Optional: Install `pytesseract` and the Tesseract OCR system binary locally to enable OCR fallback on scanned documents.
 
 ---
 
 ## Repository Status
-*   **Milestones Completed**: 7 / 10 (70% Completion).
-*   **Status**: Frozen at version `v0.7.0-document-intelligence`.
+*   **Milestones Completed**: 9 / 10 (90% Completion).
+*   **Status**: Frozen at version `v0.9.0-rag-llm-integration`.
 
-## What's Next (Milestone 6)
-*   **Objective**: Vector Storage Pipeline & Hybrid Search Retrieval. Incorporate `Sentence-Transformers` local embedding generation and `FAISS-cpu` self-hosted vector indexing.
+---
+
+## Screenshots Placeholder
+*   [Insert API chat endpoint execution screenshots here]
+
+---
+
+## Future Roadmap (Milestone 8)
+*   **Objective**: Financial Intelligence & Recommendation Engine. Establish rating scores, calculate key ratios, analyze filing/news sentiment, and build recommendation triggers.

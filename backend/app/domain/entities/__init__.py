@@ -3,6 +3,12 @@ Entities package containing domain entities for EquityIQ.
 """
 
 from app.domain.entities.company import Company
+from app.domain.entities.conversation import (
+    Citation,
+    Conversation,
+    ConversationMessage,
+    LLMRequest,
+)
 from app.domain.entities.document import Document, DocumentType, ParsingStatus
 from app.domain.entities.document_chunk import ChunkMetadata, DocumentChunk
 from app.domain.entities.document_version import DocumentVersion
@@ -31,8 +37,11 @@ from app.domain.entities.workspace import Workspace, WorkspaceMembership
 
 __all__ = [
     "ChunkMetadata",
+    "Citation",
     "Company",
     "ComparableCompanyAssumptions",
+    "Conversation",
+    "ConversationMessage",
     "DCFAssumptions",
     "Document",
     "DocumentChunk",
@@ -42,6 +51,7 @@ __all__ = [
     "EmbeddingManifest",
     "FinancialStatement",
     "FinancialStatementVersion",
+    "LLMRequest",
     "NormalizationAdjustment",
     "ParsingManifest",
     "ParsingStatus",

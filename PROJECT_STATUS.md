@@ -4,10 +4,10 @@
 
 ## 1. Project Specifications
 
-*   **Current Version**: `v0.8.0-vector-storage-hybrid-search`
-*   **Overall Progress**: **80% Completed** (8 / 10 Milestones completed)
-*   **Test Count**: **72 tests passing**
-*   **Code Coverage**: **86% coverage**
+*   **Current Version**: `v0.9.0-rag-llm-integration`
+*   **Overall Progress**: **90% Completed** (9 / 10 Milestones completed)
+*   **Test Count**: **84 tests passing**
+*   **Code Coverage**: **87% coverage**
 *   **CI Validation State**: **Passing** (Ruff Lint, Ruff Format, MyPy types, and Import-Linter green)
 
 ---
@@ -22,10 +22,10 @@
 *   **Milestone 3C**: Workspace & Company Management (FastAPI Router + Row-Level Security Scoping)
 *   **Milestone 4**: Financial Data Foundation (Metadata uploads, Extensible Validations, Normalization Mappings, Version Revisions)
 *   **Milestone 5**: Document Intelligence Pipeline (Asynchronous Parser Workers, OCR fallback, Markdown tables, stable deterministic chunk identities via uuid5, and manifests tracking)
-*   **Milestone 6**: Vector Storage Pipeline & Hybrid Search Retrieval (Local Hugging Face embeddings, FAISS CPU vector index, database-assisted strict pre-filtering, SQLite FTS5 full-text keyword retrieval, min-max score normalization, and linear rank fusion)
+*   **Milestone 6**: Vector Storage Pipeline & Hybrid Search Retrieval (Local Hugging Face embeddings, FAISS CPU vector index, database-assisted pre-filtering, SQLite FTS5 keyword retrieval, min-max score normalization, and linear rank fusion)
+*   **Milestone 7**: LLM Integration, Prompt-Injection Filters, Q&A Agent (RAG) (Gemini Pro/Flash integration, token budget managers, prompt injection guards, grounding scoring, explainable citations, and execution telemetry database tables)
 
 ### Upcoming Milestones
-*   **Milestone 7**: LLM Integration, Prompt-Injection Filters, Q&A Agent (RAG)
 *   **Milestone 8**: Sentiment Analysis & Scopes Recommendation Score
 *   **Milestone 9**: Report Generation & SSE Streaming
 *   **Milestone 10**: Next.js UI Frontend Implementation
@@ -38,10 +38,15 @@
 2. **Local Storage Setup (Minor)**: Documents and FAISS index binary files are currently uploaded to local disk storage (`storage/uploads` and `storage/indices`). In production, this will require migration to cloud block storage (e.g., AWS S3 or GCP Cloud Storage) with a storage adapter interface.
 3. **Eager Celery Thread Execution (Minor)**: Celery eager test runner runs synchronously on the same event loop, resolved using a dedicated thread-spawning runner fallback. In production, we must monitor background Celery worker performance and pool configurations under concurrent document loads.
 4. **OCR Fallback Warning (Minor)**: When Tesseract is not installed locally, the PDF parser catches the error gracefully but logs a standard warning. On production systems that do not require OCR, these warnings can be ignored or filtered.
+5. **Prompt Response Caching (Minor)**: Implementing a semantic vector cache layer to bypass the LLM for repeated queries.
+6. **Multi-Provider Registry (Minor)**: Building a dynamic configuration-based factory to swap model providers (Gemini, Claude, GPT, Ollama).
+7. **Token-Level Streaming (Milestone 9)**: Implementing server-sent event (SSE) streams for real-time generative responses.
+8. **Retrieval Reranker Models (Minor)**: Injecting cross-encoders to rerank the top candidate context chunks retrieved by the hybrid search.
+9. **Automated Ragas Benchmarks (Minor)**: Creating automated evaluation workflows against golden datasets to benchmark retrieval faithfulness.
 
 ---
 
-## 4. Tomorrow's Development Goal
+## 4. Next Development Session Goal
 
-*   **Target Milestone**: **Milestone 7 — LLM Integration & Retrieval-Augmented Generation (RAG)**
-*   **Objective**: Integrate large language model providers (e.g., Gemini or self-hosted models), construct prompt engineering logic, deploy prompt-injection sanitization filters, and create the Q&A retrieval-augmented research agent.
+*   **Target Milestone**: **Milestone 8 — Financial Intelligence & Recommendation Engine**
+*   **Objective**: Construct financial calculation analyzers, implement score rating algorithms, analyze news/filings sentiment parsing, and establish recommendation triggers.

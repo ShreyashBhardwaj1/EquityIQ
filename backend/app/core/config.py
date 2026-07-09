@@ -79,6 +79,22 @@ class Settings(BaseSettings):
         default="v1",
         description="Directory versioning identifier for indices storage",
     )
+    GEMINI_API_KEY: str | None = Field(
+        default=None,
+        description="Google Gemini API Key for LLM operations",
+    )
+    PRIMARY_LLM_MODEL: str = Field(
+        default="gemini-2.5-pro",
+        description="Primary model version for text completion",
+    )
+    FALLBACK_LLM_MODEL: str = Field(
+        default="gemini-2.5-flash",
+        description="Secondary fallback model version",
+    )
+    LLM_TEMPERATURE: float = Field(
+        default=0.0,
+        description="Sampling temperature for text completion",
+    )
 
 
 # Global settings instance

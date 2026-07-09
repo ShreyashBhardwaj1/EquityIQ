@@ -4,6 +4,42 @@ All notable changes to the EquityIQ project will be documented in this file.
 
 ---
 
+## [v0.9.0-rag-llm-integration] - 2026-07-09
+
+This release introduces LLM Integration & Retrieval-Augmented Generation (RAG) capabilities, featuring Gemini 2.5 Pro primary service with Flash fallback, token budget auditing, prompt injection filters, grounding evaluations, explainable citation metadata, and execution latency telemetry tracking.
+
+### Added
+- **Gemini Adapter Layer**: Connected backend application flows to Gemini SDK utilizing Gemini 2.5 Pro as the primary completion model and Gemini 2.5 Flash as a fallback.
+- **Prompt Injection Guard**: Created compiled safety checks validating incoming queries and grounding text for system instruction leaks, override attempts, role-switching, and XML manipulation.
+- **Context Assembler**: Grouped consecutive chunk indexes under the same document section to optimize context and formatted them into XML-tagged blocks.
+- **Token Budget Manager**: Created local token auditing (20,000 limits) using tiktoken, pruning chat turns first (oldest first) and then candidate context chunks.
+- **Deterministic Grounding Score**: Exposed sentence-level citation analysis calculating the ratio of cited sentences to total generated sentences in responses.
+- **LLM Telemetry Monitoring**: Created database model mappings recording input/output token counts, execution latency, metadata versions, and scores without recording query inputs.
+- **Deep Citation Explainability**: Augmented citations with retrieval trace metadata including rank, semantic score, keyword score, hybrid score, and retrieval method.
+- **Stateless & Stateful API Routes**: Added `POST /chat/ask` stateless grounding checks and `POST /chat/chat` multi-turn active sessions.
+- **Unit Verification**: Built `test_refinements.py` verifying external prompt templates, grounding math, telemetry schemas, and citation fields mapping.
+
+### Changed
+- **Database Schema**: Executed migration revision `b6c989ff64f7` mapping `llm_requests` table and adding explainability columns to `citations` table.
+- **Prompts Structure**: Externalized prompts into dedicated markdown files under `backend/app/prompts/` (system, answer, citation, summarizer instructions).
+- **Session Lifecycles**: Configured `ConversationService` to run asynchronous background celery task summarizing chat session turns when history exceeds 10 turns.
+
+### Improved
+- **Clean Architecture Boundaries**: Preserved domain boundaries, mapping explainability metrics from search results to DB citation rows without mixing layers.
+- **MyPy Typing**: Cleaned type reassignment checks in HybridSearchService to prevent union float warnings.
+
+### Validation
+- **Ruff**: Passed formatting and check cleanly.
+- **MyPy**: Strict static typing analysis success with 0 warnings.
+- **Import-Linter**: Preserved clean boundaries contract.
+- **Pytest**: 84 tests passing cleanly with 87% coverage.
+
+### Documentation
+- **AI Architecture**: Created `docs/ai_architecture.md` detailing pipelines and workflows with Mermaid diagrams.
+- **Technical Debt**: Created `docs/technical_debt.md` listing response caching, provider registry, streaming, reranking, and benchmarking as deferred items.
+
+---
+
 ## [v0.8.0-vector-storage-hybrid-search] - 2026-07-08
 
 This release introduces the Vector Storage Pipeline & Hybrid Search Retrieval system, implementing local SentenceTransformers vector embedding, disk-persisted FAISS CPU flat indexes with strict database-assisted pre-filtering, SQLite FTS5 full-text keyword retrieval, min-max score normalization, and linear combination hybrid rank fusion.

@@ -10,6 +10,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.application.services.company_service import CompanyService
+from app.application.services.conversation_service import ConversationService
 from app.application.services.document_service import DocumentService
 from app.application.services.embedding_service import EmbeddingService
 from app.application.services.financial_statement_service import (
@@ -18,18 +19,26 @@ from app.application.services.financial_statement_service import (
 from app.application.services.hybrid_search_service import HybridSearchService
 from app.application.services.index_builder import IndexBuilder
 from app.application.services.index_manager import IndexManager
+from app.application.services.rag_service import RAGService
 from app.application.services.retrieval_service import RetrievalService
 from app.application.services.workspace_service import WorkspaceService
 from app.core.config import Settings, settings
 from app.domain.entities.user import User, UserRole
+from app.domain.interfaces.providers import LLMProvider, TokenizerProvider
 from app.domain.interfaces.repositories import (
     EmbeddingProvider,
     VectorStore,
 )
 from app.infrastructure.db.manager import DatabaseManager, db_manager
 from app.infrastructure.db.repositories.chunk_repo import SQLAlchemyChunkRepository
+from app.infrastructure.db.repositories.citation_repo import (
+    SQLAlchemyCitationRepository,
+)
 from app.infrastructure.db.repositories.company_repo import (
     SQLAlchemyCompanyRepository,
+)
+from app.infrastructure.db.repositories.conversation_repo import (
+    SQLAlchemyConversationRepository,
 )
 from app.infrastructure.db.repositories.document_repo import (
     SQLAlchemyDocumentRepository,
@@ -425,3 +434,106 @@ def get_hybrid_search_service(
     from app.application.services.hybrid_search_service import HybridSearchService
 
     return HybridSearchService(retrieval_service, chunk_repo)
+
+
+def get_conversation_repository(
+    session: AsyncSession = Depends(get_db_session),
+) -> SQLAlchemyConversationRepository:
+    """
+    Dependency provider yielding Conversation repository.
+    """
+    return SQLAlchemyConversationRepository(session)
+
+
+def get_citation_repository(
+    session: AsyncSession = Depends(get_db_session),
+) -> SQLAlchemyCitationRepository:
+    """
+    Dependency provider yielding Citation repository.
+    """
+    return SQLAlchemyCitationRepository(session)
+
+
+_llm_provider = None
+_tokenizer_provider = None
+
+
+def get_tokenizer_provider() -> TokenizerProvider:
+    """
+    Dependency provider yielding TokenizerAdapter singleton.
+    """
+    global _tokenizer_provider
+    if _tokenizer_provider is None:
+        from app.infrastructure.llm.tokenizer_adapter import (
+            TiktokenTokenizerAdapter,
+        )
+
+        _tokenizer_provider = TiktokenTokenizerAdapter()
+    return _tokenizer_provider
+
+
+def get_llm_provider() -> LLMProvider:
+    """
+    Dependency provider yielding LLMProvider adapter instance.
+    """
+    global _llm_provider
+    if _llm_provider is None:
+        from app.infrastructure.llm.gemini_adapter import GeminiAdapter
+
+        _llm_provider = GeminiAdapter()
+    return _llm_provider
+
+
+def get_conversation_service(
+    conv_repo: SQLAlchemyConversationRepository = Depends(get_conversation_repository),
+    cit_repo: SQLAlchemyCitationRepository = Depends(get_citation_repository),
+    llm_provider: LLMProvider = Depends(get_llm_provider),
+) -> ConversationService:
+    """
+    Dependency provider yielding ConversationService.
+    """
+    return ConversationService(
+        conversation_repo=conv_repo,
+        citation_repo=cit_repo,
+        llm_provider=llm_provider,
+    )
+
+
+def get_rag_service(
+    hybrid_search: HybridSearchService = Depends(get_hybrid_search_service),
+    chunk_repo: SQLAlchemyChunkRepository = Depends(get_chunk_repository),
+    conv_service: ConversationService = Depends(get_conversation_service),
+    llm_provider: LLMProvider = Depends(get_llm_provider),
+    tokenizer_provider: TokenizerProvider = Depends(get_tokenizer_provider),
+) -> RAGService:
+    """
+    Dependency provider yielding the RAGService orchestrator.
+    """
+    from app.application.services.citation_service import CitationService
+    from app.application.services.confidence_scorer import ConfidenceScorer
+    from app.application.services.context_assembler import ContextAssembler
+    from app.application.services.prompt_builder import PromptBuilder
+    from app.application.services.prompt_injection_guard import PromptInjectionGuard
+    from app.application.services.response_validator import ResponseValidator
+    from app.application.services.token_budget_manager import TokenBudgetManager
+
+    assembler = ContextAssembler(chunk_repo)
+    budget_manager = TokenBudgetManager(tokenizer_provider)
+    prompt_builder = PromptBuilder()
+    guard = PromptInjectionGuard()
+    validator = ResponseValidator()
+    scorer = ConfidenceScorer()
+    cit_service = CitationService()
+
+    return RAGService(
+        hybrid_search_service=hybrid_search,
+        prompt_injection_guard=guard,
+        context_assembler=assembler,
+        token_budget_manager=budget_manager,
+        prompt_builder=prompt_builder,
+        llm_provider=llm_provider,
+        response_validator=validator,
+        confidence_scorer=scorer,
+        citation_service=cit_service,
+        conversation_service=conv_service,
+    )
