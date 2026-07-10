@@ -30,3 +30,10 @@ class Ratio(BaseModel):
     computed_at: datetime = Field(
         default_factory=datetime.utcnow, description="Computation timestamp"
     )
+
+    @property
+    def status(self) -> str:
+        """Determines qualitative classification (Excellent, Healthy, Watch, etc.)"""
+        from app.domain.rules.ratio_registry import classify_ratio_status
+        return classify_ratio_status(self.ratio_name, self.value)
+

@@ -20,11 +20,21 @@ from app.infrastructure.db.repositories.embedding_manifest_repo import (
 from app.infrastructure.db.repositories.embedding_repo import (
     SQLAlchemyEmbeddingRepository,
 )
+from app.infrastructure.db.repositories.health_score_repo import (
+    SQLAlchemyHealthScoreRepository,
+)
 from app.infrastructure.db.repositories.parsing_manifest_repo import (
     SQLAlchemyParsingManifestRepository,
 )
+from app.infrastructure.db.repositories.ratio_repo import SQLAlchemyRatioRepository
+from app.infrastructure.db.repositories.recommendation_repo import (
+    SQLAlchemyRecommendationRepository,
+)
 from app.infrastructure.db.repositories.refresh_token_repo import (
     SQLAlchemyRefreshTokenRepository,
+)
+from app.infrastructure.db.repositories.risk_assessment_repo import (
+    SQLAlchemyRiskAssessmentRepository,
 )
 from app.infrastructure.db.repositories.statement_repo import (
     SQLAlchemyFinancialStatementRepository,
@@ -44,8 +54,13 @@ __all__ = [
     "SQLAlchemyEmbeddingManifestRepository",
     "SQLAlchemyEmbeddingRepository",
     "SQLAlchemyFinancialStatementRepository",
+    "SQLAlchemyHealthScoreRepository",
     "SQLAlchemyParsingManifestRepository",
+    "SQLAlchemyRatioRepository",
+    "SQLAlchemyRecommendationRepository",
     "SQLAlchemyRefreshTokenRepository",
+    "SQLAlchemyRiskAssessmentRepository",
     "SQLAlchemyUserRepository",
     "SQLAlchemyWorkspaceRepository",
 ]
+

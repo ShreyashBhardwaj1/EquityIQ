@@ -267,3 +267,191 @@ async def test_financial_statement_repository_crud(
     fetched_period = await stmt_repo.get_by_period(company.id, "income", "Q1-2024")
     assert fetched_period is not None
     assert fetched_period.id == statement.id
+
+
+@pytest.mark.asyncio
+async def test_ratio_repository_crud(db_session: AsyncSession) -> None:
+    from app.domain.entities.ratio import Ratio
+    from app.infrastructure.db.repositories.ratio_repo import SQLAlchemyRatioRepository
+
+    repo = SQLAlchemyRatioRepository(db_session)
+    comp_id = uuid.uuid4()
+    ratio = Ratio(
+        id=uuid.uuid4(),
+        company_id=comp_id,
+        fiscal_period=FiscalPeriod("FY", 2024),
+        ratio_name="current_ratio",
+        value=1.5,
+        formula_version="1.0.0",
+    )
+
+    await repo.save_batch([ratio])
+    ratios = await repo.get_by_period(comp_id, "FY-2024")
+    assert len(ratios) == 1
+    assert ratios[0].value == 1.5
+
+    await repo.delete_by_period(comp_id, "FY-2024")
+    ratios_deleted = await repo.get_by_period(comp_id, "FY-2024")
+    assert len(ratios_deleted) == 0
+
+
+@pytest.mark.asyncio
+async def test_health_score_repository_crud(db_session: AsyncSession) -> None:
+    from app.domain.entities.financial_intelligence import FinancialHealthScore
+    from app.infrastructure.db.repositories.health_score_repo import (
+        SQLAlchemyHealthScoreRepository,
+    )
+
+    repo = SQLAlchemyHealthScoreRepository(db_session)
+    comp_id = uuid.uuid4()
+    health = FinancialHealthScore(
+        id=uuid.uuid4(),
+        company_id=comp_id,
+        fiscal_period=FiscalPeriod("FY", 2024),
+        overall_score=7.5,
+        category_scores={"liquidity": 8.0, "profitability": 7.0},
+        weights={"liquidity": 0.5, "profitability": 0.5},
+        score_explanation=["Strong overall health"],
+        confidence=1.0,
+        percentile=None,
+        ratio_engine_version="1.0.0",
+    )
+
+    await repo.save(health)
+    fetched = await repo.get(comp_id, "FY-2024")
+    assert fetched is not None
+    assert fetched.overall_score == 7.5
+
+    await repo.delete(comp_id, "FY-2024")
+    fetched_deleted = await repo.get(comp_id, "FY-2024")
+    assert fetched_deleted is None
+
+
+@pytest.mark.asyncio
+async def test_risk_assessment_repository_crud(db_session: AsyncSession) -> None:
+    from app.domain.entities.financial_intelligence import RiskAssessment, SeverityLevel
+    from app.infrastructure.db.repositories.risk_assessment_repo import (
+        SQLAlchemyRiskAssessmentRepository,
+    )
+
+    repo = SQLAlchemyRiskAssessmentRepository(db_session)
+    comp_id = uuid.uuid4()
+    risk = RiskAssessment(
+        id=uuid.uuid4(),
+        company_id=comp_id,
+        fiscal_period=FiscalPeriod("FY", 2024),
+        risk_category="liquidity",
+        severity=SeverityLevel.SEVERE,
+        confidence=1.0,
+        supporting_evidence="Current ratio below 1.0",
+        ratio_engine_version="1.0.0",
+    )
+
+    await repo.save_batch([risk])
+    risks = await repo.list_by_period(comp_id, "FY-2024")
+    assert len(risks) == 1
+    assert risks[0].severity == SeverityLevel.SEVERE
+
+    await repo.delete_by_period(comp_id, "FY-2024")
+    risks_deleted = await repo.list_by_period(comp_id, "FY-2024")
+    assert len(risks_deleted) == 0
+
+
+@pytest.mark.asyncio
+async def test_recommendation_repository_crud(db_session: AsyncSession) -> None:
+    # Setup parent User and Company first to satisfy Foreign Key constraints for triggered_by and company_id
+    user_repo = SQLAlchemyUserRepository(db_session)
+    user = User(
+        id=uuid.uuid4(),
+        email="test_rec@equityiq.com",
+        hashed_password="somehashpassword",
+        role=UserRole.ANALYST,
+    )
+    await user_repo.save(user)
+
+    workspace_repo = SQLAlchemyWorkspaceRepository(db_session)
+    workspace = Workspace(
+        id=uuid.uuid4(),
+        name="Test Rec Workspace",
+        owner_id=user.id,
+    )
+    await workspace_repo.save(workspace)
+
+    comp_repo = SQLAlchemyCompanyRepository(db_session)
+    company = Company(
+        id=uuid.uuid4(),
+        workspace_id=workspace.id,
+        ticker=Ticker("NFLX"),
+        exchange=Exchange("NASDAQ"),
+        name="Netflix Inc.",
+        sector="Technology",
+        industry="Entertainment",
+        country="US",
+        fiscal_year_end="12-31",
+        currency="USD",
+    )
+    await comp_repo.save(company)
+
+    from app.domain.entities.financial_intelligence import (
+        RecommendationHistory,
+        RecommendationPolicy,
+    )
+    from app.domain.entities.recommendation import Recommendation, RecommendationType
+    from app.infrastructure.db.repositories.recommendation_repo import (
+        SQLAlchemyRecommendationRepository,
+    )
+
+    repo = SQLAlchemyRecommendationRepository(db_session)
+
+    # 1. Policy test
+    policy = RecommendationPolicy(
+        policy_id=uuid.uuid4(),
+        policy_name="Standard Test Policy",
+        policy_version="1.0.0",
+        health_score_thresholds={"buy": 7.0},
+        max_severe_risks_allowed={"buy": 1},
+        requires_positive_growth=["buy"],
+        is_active=True,
+    )
+    await repo.save_policy(policy)
+    fetched_policy = await repo.get_active_policy()
+    assert fetched_policy is not None
+    assert fetched_policy.policy_version == "1.0.0"
+
+    # 2. Recommendation test
+    rec = Recommendation(
+        id=uuid.uuid4(),
+        company_id=company.id,
+        recommendation=RecommendationType.BUY,
+        composite_score=7.5,
+        rationale="Passes buy thresholds",
+        fiscal_period=FiscalPeriod("FY", 2024),
+    )
+    await repo.save(rec)
+    fetched_rec = await repo.get(company.id, "FY-2024")
+    assert fetched_rec is not None
+    assert fetched_rec.composite_score == 7.5
+
+    # 3. RecommendationHistory test
+    history = RecommendationHistory(
+        id=uuid.uuid4(),
+        recommendation_id=rec.id,
+        company_id=company.id,
+        fiscal_period=FiscalPeriod("FY", 2024),
+        rating=RecommendationType.BUY,
+        policy_id=policy.policy_id,
+        policy_version=policy.policy_version,
+        composite_score=7.5,
+        reasoning_steps=["Checks passed"],
+        triggered_by=user.id,
+    )
+    await repo.save_history(history)
+    histories = await repo.list_history(company.id, "FY-2024")
+    assert len(histories) == 1
+    assert histories[0].triggered_by == user.id
+
+    # 4. Delete test
+    await repo.delete(company.id, "FY-2024")
+    fetched_deleted_rec = await repo.get(company.id, "FY-2024")
+    assert fetched_deleted_rec is None
+

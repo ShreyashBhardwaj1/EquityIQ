@@ -17,11 +17,19 @@ from app.domain.entities.document_chunk import DocumentChunk
 from app.domain.entities.document_version import DocumentVersion
 from app.domain.entities.embedding import Embedding
 from app.domain.entities.embedding_manifest import EmbeddingManifest
+from app.domain.entities.financial_intelligence import (
+    FinancialHealthScore,
+    RecommendationHistory,
+    RecommendationPolicy,
+    RiskAssessment,
+)
 from app.domain.entities.financial_statement import FinancialStatement
 from app.domain.entities.financial_statement_version import (
     FinancialStatementVersion,
 )
 from app.domain.entities.parsing_manifest import ParsingManifest
+from app.domain.entities.ratio import Ratio
+from app.domain.entities.recommendation import Recommendation
 from app.domain.entities.user import User
 from app.domain.entities.workspace import Workspace, WorkspaceMembership
 
@@ -429,4 +437,94 @@ class CitationRepository(Protocol):
 
     async def list_by_message(self, message_id: UUID) -> list[Citation]:
         """List citations linked to an assistant message."""
+        ...
+
+
+class RatioRepository(Protocol):
+    """Abstract interface for financial Ratio data persistence operations."""
+
+    async def get_by_period(
+        self, company_id: UUID, fiscal_period: str, workspace_id: UUID | None = None
+    ) -> list[Ratio]:
+        """Retrieve computed ratios for a company in a fiscal period."""
+        ...
+
+    async def save_batch(self, ratios: list[Ratio]) -> None:
+        """Batch save computed ratio records."""
+        ...
+
+    async def delete_by_period(self, company_id: UUID, fiscal_period: str) -> None:
+        """Delete ratios associated with a specific period."""
+        ...
+
+
+class HealthScoreRepository(Protocol):
+    """Abstract interface for FinancialHealthScore data persistence operations."""
+
+    async def get(
+        self, company_id: UUID, fiscal_period: str, workspace_id: UUID | None = None
+    ) -> FinancialHealthScore | None:
+        """Retrieve computed health score for a company in a period."""
+        ...
+
+    async def save(self, health_score: FinancialHealthScore) -> FinancialHealthScore:
+        """Save a computed health score record."""
+        ...
+
+    async def delete(self, company_id: UUID, fiscal_period: str) -> None:
+        """Delete health score associated with a specific period."""
+        ...
+
+
+class RiskAssessmentRepository(Protocol):
+    """Abstract interface for RiskAssessment data persistence operations."""
+
+    async def list_by_period(
+        self, company_id: UUID, fiscal_period: str, workspace_id: UUID | None = None
+    ) -> list[RiskAssessment]:
+        """List detected risks for a company in a period."""
+        ...
+
+    async def save_batch(self, risks: list[RiskAssessment]) -> None:
+        """Batch save detected risk assessment records."""
+        ...
+
+    async def delete_by_period(self, company_id: UUID, fiscal_period: str) -> None:
+        """Delete risks associated with a specific period."""
+        ...
+
+
+class RecommendationRepository(Protocol):
+    """Abstract interface for Recommendation and RecommendationHistory data persistence."""
+
+    async def get(
+        self, company_id: UUID, fiscal_period: str, workspace_id: UUID | None = None
+    ) -> Recommendation | None:
+        """Retrieve active recommendation rating for a company in a period."""
+        ...
+
+    async def save(self, recommendation: Recommendation) -> Recommendation:
+        """Save active recommendation rating record."""
+        ...
+
+    async def delete(self, company_id: UUID, fiscal_period: str) -> None:
+        """Delete active recommendation record."""
+        ...
+
+    async def save_history(self, history: RecommendationHistory) -> None:
+        """Save a recommendation audit history record."""
+        ...
+
+    async def list_history(
+        self, company_id: UUID, fiscal_period: str
+    ) -> list[RecommendationHistory]:
+        """List historical recommendation change logs for audit trails."""
+        ...
+
+    async def get_active_policy(self) -> RecommendationPolicy | None:
+        """Retrieve currently active recommendation policy settings."""
+        ...
+
+    async def save_policy(self, policy: RecommendationPolicy) -> RecommendationPolicy:
+        """Save or register a recommendation policy."""
         ...

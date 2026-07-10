@@ -14,6 +14,17 @@ from app.domain.entities.document_chunk import ChunkMetadata, DocumentChunk
 from app.domain.entities.document_version import DocumentVersion
 from app.domain.entities.embedding import Embedding
 from app.domain.entities.embedding_manifest import EmbeddingManifest
+from app.domain.entities.financial_intelligence import (
+    FinancialHealthScore,
+    RatioCalculationResult,
+    RatioCategory,
+    RatioDefinition,
+    RecommendationHistory,
+    RecommendationPolicy,
+    RiskAssessment,
+    SeverityLevel,
+    TrendState,
+)
 from app.domain.entities.financial_statement import (
     FinancialStatement,
     NormalizationAdjustment,
@@ -23,6 +34,7 @@ from app.domain.entities.financial_statement_version import (
     FinancialStatementVersion,
 )
 from app.domain.entities.parsing_manifest import ParsingManifest
+from app.domain.entities.portfolio_signal import PortfolioSignal
 from app.domain.entities.ratio import Ratio
 from app.domain.entities.recommendation import Recommendation, RecommendationType
 from app.domain.entities.retrieval import RetrievalQuery, RetrievalResult
@@ -49,18 +61,28 @@ __all__ = [
     "DocumentVersion",
     "Embedding",
     "EmbeddingManifest",
+    "FinancialHealthScore",
     "FinancialStatement",
     "FinancialStatementVersion",
     "LLMRequest",
     "NormalizationAdjustment",
     "ParsingManifest",
     "ParsingStatus",
+    "PortfolioSignal",
     "Ratio",
+    "RatioCalculationResult",
+    "RatioCategory",
+    "RatioDefinition",
     "Recommendation",
+    "RecommendationHistory",
+    "RecommendationPolicy",
     "RecommendationType",
     "RetrievalQuery",
     "RetrievalResult",
+    "RiskAssessment",
+    "SeverityLevel",
     "StatementType",
+    "TrendState",
     "User",
     "UserRole",
     "Valuation",

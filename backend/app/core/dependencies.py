@@ -11,8 +11,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.application.services.company_service import CompanyService
 from app.application.services.conversation_service import ConversationService
+from app.application.services.dashboard_service import DashboardService
 from app.application.services.document_service import DocumentService
 from app.application.services.embedding_service import EmbeddingService
+from app.application.services.explainability_service import ExplainabilityService
+from app.application.services.financial_intelligence_service import (
+    FinancialIntelligenceService,
+)
 from app.application.services.financial_statement_service import (
     FinancialStatementService,
 )
@@ -49,11 +54,21 @@ from app.infrastructure.db.repositories.embedding_manifest_repo import (
 from app.infrastructure.db.repositories.embedding_repo import (
     SQLAlchemyEmbeddingRepository,
 )
+from app.infrastructure.db.repositories.health_score_repo import (
+    SQLAlchemyHealthScoreRepository,
+)
 from app.infrastructure.db.repositories.parsing_manifest_repo import (
     SQLAlchemyParsingManifestRepository,
 )
+from app.infrastructure.db.repositories.ratio_repo import SQLAlchemyRatioRepository
+from app.infrastructure.db.repositories.recommendation_repo import (
+    SQLAlchemyRecommendationRepository,
+)
 from app.infrastructure.db.repositories.refresh_token_repo import (
     SQLAlchemyRefreshTokenRepository,
+)
+from app.infrastructure.db.repositories.risk_assessment_repo import (
+    SQLAlchemyRiskAssessmentRepository,
 )
 from app.infrastructure.db.repositories.statement_repo import (
     SQLAlchemyFinancialStatementRepository,
@@ -537,3 +552,100 @@ def get_rag_service(
         citation_service=cit_service,
         conversation_service=conv_service,
     )
+
+
+def get_ratio_repository(
+    session: AsyncSession = Depends(get_db_session),
+) -> SQLAlchemyRatioRepository:
+    """Dependency provider yielding Ratio repository."""
+    from app.infrastructure.db.repositories.ratio_repo import SQLAlchemyRatioRepository
+    return SQLAlchemyRatioRepository(session)
+
+
+def get_health_score_repository(
+    session: AsyncSession = Depends(get_db_session),
+) -> SQLAlchemyHealthScoreRepository:
+    """Dependency provider yielding FinancialHealthScore repository."""
+    from app.infrastructure.db.repositories.health_score_repo import (
+        SQLAlchemyHealthScoreRepository,
+    )
+    return SQLAlchemyHealthScoreRepository(session)
+
+
+def get_risk_assessment_repository(
+    session: AsyncSession = Depends(get_db_session),
+) -> SQLAlchemyRiskAssessmentRepository:
+    """Dependency provider yielding RiskAssessment repository."""
+    from app.infrastructure.db.repositories.risk_assessment_repo import (
+        SQLAlchemyRiskAssessmentRepository,
+    )
+    return SQLAlchemyRiskAssessmentRepository(session)
+
+
+def get_recommendation_repository(
+    session: AsyncSession = Depends(get_db_session),
+) -> SQLAlchemyRecommendationRepository:
+    """Dependency provider yielding Recommendation repository."""
+    from app.infrastructure.db.repositories.recommendation_repo import (
+        SQLAlchemyRecommendationRepository,
+    )
+    return SQLAlchemyRecommendationRepository(session)
+
+
+def get_financial_intelligence_service(
+    statement_repo: SQLAlchemyFinancialStatementRepository = Depends(get_statement_repository),
+    ratio_repo: SQLAlchemyRatioRepository = Depends(get_ratio_repository),
+    health_repo: SQLAlchemyHealthScoreRepository = Depends(get_health_score_repository),
+    risk_repo: SQLAlchemyRiskAssessmentRepository = Depends(get_risk_assessment_repository),
+    rec_repo: SQLAlchemyRecommendationRepository = Depends(get_recommendation_repository),
+) -> FinancialIntelligenceService:
+    """Dependency provider yielding FinancialIntelligenceService orchestrator."""
+    from app.application.services.financial_intelligence_service import (
+        FinancialIntelligenceService,
+    )
+    return FinancialIntelligenceService(
+        statement_repo=statement_repo,
+        ratio_repo=ratio_repo,
+        health_repo=health_repo,
+        risk_repo=risk_repo,
+        rec_repo=rec_repo,
+    )
+
+
+def get_explainability_service(
+    health_repo: SQLAlchemyHealthScoreRepository = Depends(get_health_score_repository),
+    risk_repo: SQLAlchemyRiskAssessmentRepository = Depends(get_risk_assessment_repository),
+    rec_repo: SQLAlchemyRecommendationRepository = Depends(get_recommendation_repository),
+    statement_repo: SQLAlchemyFinancialStatementRepository = Depends(get_statement_repository),
+    ratio_repo: SQLAlchemyRatioRepository = Depends(get_ratio_repository),
+) -> ExplainabilityService:
+
+    """Dependency provider yielding ExplainabilityService."""
+    from app.application.services.explainability_service import ExplainabilityService
+    return ExplainabilityService(
+        health_repo=health_repo,
+        risk_repo=risk_repo,
+        rec_repo=rec_repo,
+        statement_repo=statement_repo,
+        ratio_repo=ratio_repo,
+    )
+
+
+
+def get_dashboard_service(
+    statement_repo: SQLAlchemyFinancialStatementRepository = Depends(get_statement_repository),
+    ratio_repo: SQLAlchemyRatioRepository = Depends(get_ratio_repository),
+    health_repo: SQLAlchemyHealthScoreRepository = Depends(get_health_score_repository),
+    risk_repo: SQLAlchemyRiskAssessmentRepository = Depends(get_risk_assessment_repository),
+    rec_repo: SQLAlchemyRecommendationRepository = Depends(get_recommendation_repository),
+) -> DashboardService:
+    """Dependency provider yielding DashboardService."""
+    from app.application.services.dashboard_service import DashboardService
+    return DashboardService(
+        statement_repo=statement_repo,
+        ratio_repo=ratio_repo,
+        health_repo=health_repo,
+        risk_repo=risk_repo,
+        rec_repo=rec_repo,
+    )
+

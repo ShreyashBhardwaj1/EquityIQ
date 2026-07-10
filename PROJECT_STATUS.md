@@ -4,9 +4,9 @@
 
 ## 1. Project Specifications
 
-*   **Current Version**: `v0.9.0-rag-llm-integration`
-*   **Overall Progress**: **90% Completed** (9 / 10 Milestones completed)
-*   **Test Count**: **84 tests passing**
+*   **Current Version**: `v1.0.0-financial-intelligence`
+*   **Overall Progress**: **80% Completed** (8 / 10 Milestones completed)
+*   **Test Count**: **94 tests passing**
 *   **Code Coverage**: **87% coverage**
 *   **CI Validation State**: **Passing** (Ruff Lint, Ruff Format, MyPy types, and Import-Linter green)
 
@@ -24,10 +24,10 @@
 *   **Milestone 5**: Document Intelligence Pipeline (Asynchronous Parser Workers, OCR fallback, Markdown tables, stable deterministic chunk identities via uuid5, and manifests tracking)
 *   **Milestone 6**: Vector Storage Pipeline & Hybrid Search Retrieval (Local Hugging Face embeddings, FAISS CPU vector index, database-assisted pre-filtering, SQLite FTS5 keyword retrieval, min-max score normalization, and linear rank fusion)
 *   **Milestone 7**: LLM Integration, Prompt-Injection Filters, Q&A Agent (RAG) (Gemini Pro/Flash integration, token budget managers, prompt injection guards, grounding scoring, explainable citations, and execution telemetry database tables)
+*   **Milestone 8**: Financial Intelligence & Recommendation Engine (Config-driven Registry Ratio calculations, qualitative status categorization, Health Scoring, Risk evaluation, Policy-driven Recommendations, and consolidated Dashboard)
 
 ### Upcoming Milestones
-*   **Milestone 8**: Sentiment Analysis & Scopes Recommendation Score
-*   **Milestone 9**: Report Generation & SSE Streaming
+*   **Milestone 9**: Report Drafting & SSE Streaming
 *   **Milestone 10**: Next.js UI Frontend Implementation
 
 ---
@@ -48,5 +48,5 @@
 
 ## 4. Next Development Session Goal
 
-*   **Target Milestone**: **Milestone 8 — Financial Intelligence & Recommendation Engine**
-*   **Objective**: Construct financial calculation analyzers, implement score rating algorithms, analyze news/filings sentiment parsing, and establish recommendation triggers.
+*   **Target Milestone**: **Milestone 9 — Report Generation & Streaming Engine**
+*   **Objective**: Build asynchronous markdown report drafting generators, dynamic streaming engines utilizing Server-Sent Events (SSE), PDF/Word export capabilities, and background task progress coordinates.

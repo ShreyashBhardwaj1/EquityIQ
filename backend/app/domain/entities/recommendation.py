@@ -1,20 +1,20 @@
-"""
-Recommendation entity representing the final investment recommendations.
-"""
-
 from datetime import datetime
 from enum import StrEnum
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from app.domain.value_objects.fiscal_period import FiscalPeriod
+
 
 class RecommendationType(StrEnum):
     """Investment recommendation ratings."""
 
+    STRONG_BUY = "strong_buy"
     BUY = "buy"
     HOLD = "hold"
     SELL = "sell"
+    STRONG_SELL = "strong_sell"
 
 
 class Recommendation(BaseModel):
@@ -36,6 +36,10 @@ class Recommendation(BaseModel):
         description="Score calculated based on financial scoring rubrics",
     )
     rationale: str = Field(min_length=1, description="Narrative reasoning explanation")
+    fiscal_period: FiscalPeriod | None = Field(
+        default=None, description="Target reporting fiscal period value object"
+    )
     created_at: datetime = Field(
         default_factory=datetime.utcnow, description="Recommendation creation timestamp"
     )
+

@@ -123,6 +123,81 @@ class RAGService:
             active_results
         )
 
+        # Step 6b: If company_id is provided, fetch pre-computed financial intelligence data
+        precomputed_block = ""
+        if company_id:
+            try:
+                from sqlalchemy import select
+
+                from app.infrastructure.db.models.health_score import (
+                    FinancialHealthScoreORM,
+                )
+                from app.infrastructure.db.repositories.health_score_repo import (
+                    SQLAlchemyHealthScoreRepository,
+                )
+                from app.infrastructure.db.repositories.ratio_repo import (
+                    SQLAlchemyRatioRepository,
+                )
+                from app.infrastructure.db.repositories.recommendation_repo import (
+                    SQLAlchemyRecommendationRepository,
+                )
+                from app.infrastructure.db.repositories.risk_assessment_repo import (
+                    SQLAlchemyRiskAssessmentRepository,
+                )
+
+                ratio_repo = SQLAlchemyRatioRepository(db_session)
+                health_repo = SQLAlchemyHealthScoreRepository(db_session)
+                risk_repo = SQLAlchemyRiskAssessmentRepository(db_session)
+                rec_repo = SQLAlchemyRecommendationRepository(db_session)
+
+                # Fetch most recent period's health score
+                stmt = select(FinancialHealthScoreORM).where(
+                    FinancialHealthScoreORM.company_id == company_id
+                ).order_by(FinancialHealthScoreORM.fiscal_period.desc()).limit(1)
+                db_res = await db_session.execute(stmt)
+                latest_hs_orm = db_res.scalars().first()
+
+                if latest_hs_orm:
+                    period = latest_hs_orm.fiscal_period
+                    health_score = health_repo._to_domain(latest_hs_orm)
+                    ratios_list = await ratio_repo.get_by_period(company_id, period)
+                    risks_list = await risk_repo.list_by_period(company_id, period)
+                    rec = await rec_repo.get(company_id, period)
+
+                    lines = [
+                        f"=== DETERMINISTIC FINANCIAL INTELLIGENCE TABLES (PERIOD: {period}) ===",
+                        f"Recommendation Rating: {rec.recommendation.value.upper() if rec else 'HOLD'}",
+                        f"Overall Health Score: {health_score.overall_score:.2f} / 10.0 (Completeness Confidence: {health_score.confidence * 100:.1f}%)",
+                        "Category Health Scores:"
+                    ]
+                    for cat, score in health_score.category_scores.items():
+                        lines.append(f"  - {cat.title()}: {score:.2f} / 10.0")
+
+                    lines.append("Deterministic Ratios calculated:")
+                    for r in ratios_list:
+                        lines.append(f"  - {r.ratio_name}: {r.value:.4f}")
+
+                    lines.append("Flagged Risk Assessments:")
+                    if risks_list:
+                        for risk in risks_list:
+                            lines.append(f"  - [{risk.severity.value.upper()}] {risk.risk_category}: {risk.supporting_evidence}")
+                    else:
+                        lines.append("  - No risks flagged.")
+
+                    if latest_hs_orm.score_explanation:
+                        lines.append("Scoring Explanation:")
+                        for expl in latest_hs_orm.score_explanation:
+                            lines.append(f"  - {expl}")
+
+                    lines.append("=====================================================================")
+                    precomputed_block = "\n".join(lines) + "\n\n"
+            except Exception as e:
+                logger.warning("Failed to fetch precomputed financial intelligence data: %s", e)
+
+        if precomputed_block:
+            context_text = precomputed_block + context_text
+
+
         # Step 7: Prompt Builder (Combine system instructions, context, history, and query)
         full_prompt = self.prompt_builder.build_prompt(
             context_text=context_text,
