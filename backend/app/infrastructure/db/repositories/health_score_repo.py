@@ -13,7 +13,9 @@ from app.infrastructure.db.models.health_score import FinancialHealthScoreORM
 from app.infrastructure.db.repositories.base_repo import BaseRepository
 
 
-class SQLAlchemyHealthScoreRepository(BaseRepository[FinancialHealthScoreORM], HealthScoreRepository):
+class SQLAlchemyHealthScoreRepository(
+    BaseRepository[FinancialHealthScoreORM], HealthScoreRepository
+):
     """
     SQLAlchemy-backed implementation of the HealthScoreRepository interface.
     """
@@ -28,8 +30,10 @@ class SQLAlchemyHealthScoreRepository(BaseRepository[FinancialHealthScoreORM], H
         financial_data_quality = orm.confidence
         if orm.category_scores:
             avg = sum(orm.category_scores.values()) / len(orm.category_scores)
-            variance = sum((x - avg) ** 2 for x in orm.category_scores.values()) / len(orm.category_scores)
-            std_dev = variance ** 0.5
+            variance = sum((x - avg) ** 2 for x in orm.category_scores.values()) / len(
+                orm.category_scores
+            )
+            std_dev = variance**0.5
             rule_agreement = max(0.0, min(1.0, 1.0 - (std_dev / 5.0)))
         else:
             rule_agreement = 1.0
@@ -58,7 +62,6 @@ class SQLAlchemyHealthScoreRepository(BaseRepository[FinancialHealthScoreORM], H
             computed_at=orm.created_at,
         )
 
-
     def _to_orm(self, domain: FinancialHealthScore) -> FinancialHealthScoreORM:
         """Translates Domain Entity to ORM model."""
         return FinancialHealthScoreORM(
@@ -73,7 +76,6 @@ class SQLAlchemyHealthScoreRepository(BaseRepository[FinancialHealthScoreORM], H
             percentile=domain.percentile,
             ratio_engine_version=domain.ratio_engine_version,
         )
-
 
     async def get(
         self, company_id: UUID, fiscal_period: str, workspace_id: UUID | None = None

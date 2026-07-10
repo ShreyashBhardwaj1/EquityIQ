@@ -60,4 +60,3 @@ app.include_router(financial_statement_router)
 app.include_router(financial_intelligence_router)
 app.include_router(search_router)
 app.include_router(chat_router)
-

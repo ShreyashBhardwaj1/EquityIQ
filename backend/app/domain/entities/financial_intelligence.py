@@ -141,7 +141,6 @@ class FinancialHealthScore(BaseModel):
     )
 
 
-
 class RiskAssessment(BaseModel):
     """Detected risk flag rating for a company and period."""
 

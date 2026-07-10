@@ -26,7 +26,9 @@ class RiskAssessmentORM(Base):
     )
     fiscal_period: Mapped[str] = mapped_column(String(10), nullable=False, index=True)
     risk_category: Mapped[str] = mapped_column(String(100), nullable=False)
-    severity: Mapped[str] = mapped_column(String(20), nullable=False)  # e.g., 'low', 'moderate', 'severe'
+    severity: Mapped[str] = mapped_column(
+        String(20), nullable=False
+    )  # e.g., 'low', 'moderate', 'severe'
     confidence: Mapped[float] = mapped_column(Float, nullable=False)
     supporting_evidence: Mapped[str] = mapped_column(String(1024), nullable=False)
     ratio_engine_version: Mapped[str] = mapped_column(String(32), nullable=False)

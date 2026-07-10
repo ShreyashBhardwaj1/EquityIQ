@@ -56,7 +56,9 @@ class RecommendationORM(Base):
         index=True,
     )
     fiscal_period: Mapped[str] = mapped_column(String(10), nullable=False, index=True)
-    rating: Mapped[str] = mapped_column(String(20), nullable=False)  # e.g., 'buy', 'hold', 'sell'
+    rating: Mapped[str] = mapped_column(
+        String(20), nullable=False
+    )  # e.g., 'buy', 'hold', 'sell'
     overall_score: Mapped[float] = mapped_column(Float, nullable=False)
     rules_applied: Mapped[list[str]] = mapped_column(
         JSON().with_variant(postgresql.JSONB(), "postgresql"),
@@ -64,4 +66,6 @@ class RecommendationORM(Base):
         server_default="[]",
         nullable=False,
     )
-    recommendation_policy_version: Mapped[str] = mapped_column(String(32), nullable=False)
+    recommendation_policy_version: Mapped[str] = mapped_column(
+        String(32), nullable=False
+    )

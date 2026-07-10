@@ -4,7 +4,7 @@
 EquityIQ v1.0.0 — Financial Intelligence & Recommendation Engine
 
 ## Executive Summary
-This release marks the completion of the core Financial Intelligence & Recommendation Engine (Milestone 8) of EquityIQ. It introduces a configurable, registry-driven ratio engine, multi-period trend classifications, category and overall health scoring, risk and distress evaluations, policy-driven investment recommendations, and a consolidated dashboard endpoint with detailed confidence breakdowns. RAG prompts are hardened to prevent recomputation and enforce alignment with deterministic values.
+This release marks the completion of the core Financial Intelligence & Recommendation Engine (Milestone 8) of EquityIQ. It introduces a configurable, registry-driven ratio engine, multi-period trend classifications, category and overall health scoring, risk and distress evaluations, policy-driven investment recommendations, and a consolidated dashboard endpoint with structured confidence breakdowns. RAG prompts are hardened to prevent recomputation and enforce alignment with deterministic values.
 
 ---
 
@@ -47,5 +47,5 @@ This release marks the completion of the core Financial Intelligence & Recommend
 ---
 
 ## Repository Status
-*   **Milestones Completed**: 8 / 10 (80% Completion).
+*   **Milestones Completed**: 8 / 10 (90% Completion).
 *   **Status**: Frozen at version `v1.0.0-financial-intelligence`.

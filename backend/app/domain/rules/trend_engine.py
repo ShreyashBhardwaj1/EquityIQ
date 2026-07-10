@@ -32,12 +32,16 @@ def classify_trend(values: list[float], stable_band: float = 0.01) -> TrendState
         return TrendState.DECLINE if g < 0.0 else TrendState.ACCELERATING
 
     # 2. Check for volatility (more than one change in sign of growth)
-    growths = [calculate_growth_rate(values[i-1], values[i]) for i in range(1, len(values))]
+    growths = [
+        calculate_growth_rate(values[i - 1], values[i]) for i in range(1, len(values))
+    ]
     sign_changes = 0
     for i in range(1, len(growths)):
         # Sign change occurs if one growth is positive/negative and the other is opposite
-        g_prev, g_curr = growths[i-1], growths[i]
-        if (g_prev > stable_band and g_curr < -stable_band) or (g_prev < -stable_band and g_curr > stable_band):
+        g_prev, g_curr = growths[i - 1], growths[i]
+        if (g_prev > stable_band and g_curr < -stable_band) or (
+            g_prev < -stable_band and g_curr > stable_band
+        ):
             sign_changes += 1
 
     if sign_changes >= 2:

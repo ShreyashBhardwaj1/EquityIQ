@@ -45,14 +45,22 @@ class CalculateResponse(BaseModel):
     financial_intelligence_version: str
 
 
-@router.post("/{company_id}/calculate", response_model=CalculateResponse, status_code=status.HTTP_200_OK)
+@router.post(
+    "/{company_id}/calculate",
+    response_model=CalculateResponse,
+    status_code=status.HTTP_200_OK,
+)
 async def calculate_financial_intelligence(
     company_id: UUID,
-    fiscal_period: str = Query(..., description="Target reporting period, e.g. FY-2024"),
+    fiscal_period: str = Query(
+        ..., description="Target reporting period, e.g. FY-2024"
+    ),
     active_workspace_id: UUID = Depends(get_current_workspace_id),
     current_user: User = Depends(get_current_user),
     company_repo: SQLAlchemyCompanyRepository = Depends(get_company_repository),
-    fi_service: FinancialIntelligenceService = Depends(get_financial_intelligence_service),
+    fi_service: FinancialIntelligenceService = Depends(
+        get_financial_intelligence_service
+    ),
 ) -> CalculateResponse:
     """
     Triggers the calculation pipeline for ratios, health scores, risks, and recommendation ratings.
@@ -100,7 +108,9 @@ async def calculate_financial_intelligence(
 @router.get("/{company_id}/explainability", status_code=status.HTTP_200_OK)
 async def get_explainability(
     company_id: UUID,
-    fiscal_period: str = Query(..., description="Target reporting period, e.g. FY-2024"),
+    fiscal_period: str = Query(
+        ..., description="Target reporting period, e.g. FY-2024"
+    ),
     active_workspace_id: UUID = Depends(get_current_workspace_id),
     company_repo: SQLAlchemyCompanyRepository = Depends(get_company_repository),
     explain_service: ExplainabilityService = Depends(get_explainability_service),
@@ -123,7 +133,9 @@ async def get_explainability(
 @router.get("/{company_id}/dashboard", status_code=status.HTTP_200_OK)
 async def get_dashboard(
     company_id: UUID,
-    fiscal_period: str = Query(..., description="Target reporting period, e.g. FY-2024"),
+    fiscal_period: str = Query(
+        ..., description="Target reporting period, e.g. FY-2024"
+    ),
     active_workspace_id: UUID = Depends(get_current_workspace_id),
     company_repo: SQLAlchemyCompanyRepository = Depends(get_company_repository),
     dash_service: DashboardService = Depends(get_dashboard_service),

@@ -13,7 +13,9 @@ from app.infrastructure.db.models.risk_assessment import RiskAssessmentORM
 from app.infrastructure.db.repositories.base_repo import BaseRepository
 
 
-class SQLAlchemyRiskAssessmentRepository(BaseRepository[RiskAssessmentORM], RiskAssessmentRepository):
+class SQLAlchemyRiskAssessmentRepository(
+    BaseRepository[RiskAssessmentORM], RiskAssessmentRepository
+):
     """
     SQLAlchemy-backed implementation of the RiskAssessmentRepository interface.
     """
@@ -46,7 +48,6 @@ class SQLAlchemyRiskAssessmentRepository(BaseRepository[RiskAssessmentORM], Risk
             supporting_evidence=domain.supporting_evidence,
             ratio_engine_version=domain.ratio_engine_version,
         )
-
 
     async def list_by_period(
         self, company_id: UUID, fiscal_period: str, workspace_id: UUID | None = None

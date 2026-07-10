@@ -151,9 +151,12 @@ class RAGService:
                 rec_repo = SQLAlchemyRecommendationRepository(db_session)
 
                 # Fetch most recent period's health score
-                stmt = select(FinancialHealthScoreORM).where(
-                    FinancialHealthScoreORM.company_id == company_id
-                ).order_by(FinancialHealthScoreORM.fiscal_period.desc()).limit(1)
+                stmt = (
+                    select(FinancialHealthScoreORM)
+                    .where(FinancialHealthScoreORM.company_id == company_id)
+                    .order_by(FinancialHealthScoreORM.fiscal_period.desc())
+                    .limit(1)
+                )
                 db_res = await db_session.execute(stmt)
                 latest_hs_orm = db_res.scalars().first()
 
@@ -168,7 +171,7 @@ class RAGService:
                         f"=== DETERMINISTIC FINANCIAL INTELLIGENCE TABLES (PERIOD: {period}) ===",
                         f"Recommendation Rating: {rec.recommendation.value.upper() if rec else 'HOLD'}",
                         f"Overall Health Score: {health_score.overall_score:.2f} / 10.0 (Completeness Confidence: {health_score.confidence * 100:.1f}%)",
-                        "Category Health Scores:"
+                        "Category Health Scores:",
                     ]
                     for cat, score in health_score.category_scores.items():
                         lines.append(f"  - {cat.title()}: {score:.2f} / 10.0")
@@ -180,7 +183,9 @@ class RAGService:
                     lines.append("Flagged Risk Assessments:")
                     if risks_list:
                         for risk in risks_list:
-                            lines.append(f"  - [{risk.severity.value.upper()}] {risk.risk_category}: {risk.supporting_evidence}")
+                            lines.append(
+                                f"  - [{risk.severity.value.upper()}] {risk.risk_category}: {risk.supporting_evidence}"
+                            )
                     else:
                         lines.append("  - No risks flagged.")
 
@@ -189,14 +194,17 @@ class RAGService:
                         for expl in latest_hs_orm.score_explanation:
                             lines.append(f"  - {expl}")
 
-                    lines.append("=====================================================================")
+                    lines.append(
+                        "====================================================================="
+                    )
                     precomputed_block = "\n".join(lines) + "\n\n"
             except Exception as e:
-                logger.warning("Failed to fetch precomputed financial intelligence data: %s", e)
+                logger.warning(
+                    "Failed to fetch precomputed financial intelligence data: %s", e
+                )
 
         if precomputed_block:
             context_text = precomputed_block + context_text
-
 
         # Step 7: Prompt Builder (Combine system instructions, context, history, and query)
         full_prompt = self.prompt_builder.build_prompt(

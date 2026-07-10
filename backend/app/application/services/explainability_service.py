@@ -34,7 +34,9 @@ class ExplainabilityService:
         self.statement_repo = statement_repo
         self.ratio_repo = ratio_repo
 
-    async def get_explainability(self, company_id: UUID, fiscal_period: str) -> dict[str, Any]:
+    async def get_explainability(
+        self, company_id: UUID, fiscal_period: str
+    ) -> dict[str, Any]:
         """
         Retrieves the deterministic reasoning breakdown and scoring checks.
         """
@@ -73,13 +75,22 @@ class ExplainabilityService:
         if health:
             for cat, score in health.category_scores.items():
                 if score >= 7.0:
-                    positive_signals.append(f"Strong performance in {cat}: score {score}")
+                    positive_signals.append(
+                        f"Strong performance in {cat}: score {score}"
+                    )
                 elif score <= 4.0:
-                    negative_signals.append(f"Strained performance in {cat}: score {score}")
+                    negative_signals.append(
+                        f"Strained performance in {cat}: score {score}"
+                    )
             for msg in health.score_explanation:
                 if "Strong" in msg or "positive" in msg.lower():
                     positive_signals.append(msg)
-                elif "Caution" in msg or "Weak" in msg or "negative" in msg.lower() or "strained" in msg.lower():
+                elif (
+                    "Caution" in msg
+                    or "Weak" in msg
+                    or "negative" in msg.lower()
+                    or "strained" in msg.lower()
+                ):
                     negative_signals.append(msg)
 
         # Ratios influencing recommendation
@@ -87,30 +98,41 @@ class ExplainabilityService:
         ratios_influencing = []
         for ratio_item in ratios:
             status = ratio_item.status
-            ratios_influencing.append({
-                "ratio_name": ratio_item.ratio_name,
-                "value": ratio_item.value,
-                "status": status,
-            })
+            ratios_influencing.append(
+                {
+                    "ratio_name": ratio_item.ratio_name,
+                    "value": ratio_item.value,
+                    "status": status,
+                }
+            )
             if status in ["Excellent", "Healthy"]:
-                positive_signals.append(f"Ratio {ratio_item.ratio_name} is in a strong position ({status}: {ratio_item.value:.2f})")
+                positive_signals.append(
+                    f"Ratio {ratio_item.ratio_name} is in a strong position ({status}: {ratio_item.value:.2f})"
+                )
             elif status in ["Weak", "Critical"]:
-                negative_signals.append(f"Ratio {ratio_item.ratio_name} is in a strained position ({status}: {ratio_item.value:.2f})")
+                negative_signals.append(
+                    f"Ratio {ratio_item.ratio_name} is in a strained position ({status}: {ratio_item.value:.2f})"
+                )
 
         # Risk factors influencing recommendation
         risk_factors_influencing = []
         for risk_item in risks:
             sev_str = str(risk_item.severity)
-            risk_factors_influencing.append({
-                "category": risk_item.risk_category,
-                "severity": sev_str,
-                "supporting_evidence": risk_item.supporting_evidence,
-            })
+            risk_factors_influencing.append(
+                {
+                    "category": risk_item.risk_category,
+                    "severity": sev_str,
+                    "supporting_evidence": risk_item.supporting_evidence,
+                }
+            )
             if sev_str == "severe":
-                negative_signals.append(f"Severe risk detected in {risk_item.risk_category}: {risk_item.supporting_evidence}")
+                negative_signals.append(
+                    f"Severe risk detected in {risk_item.risk_category}: {risk_item.supporting_evidence}"
+                )
             elif sev_str == "moderate":
-                negative_signals.append(f"Moderate risk detected in {risk_item.risk_category}: {risk_item.supporting_evidence}")
-
+                negative_signals.append(
+                    f"Moderate risk detected in {risk_item.risk_category}: {risk_item.supporting_evidence}"
+                )
 
         # Trend factors influencing recommendation
         trend_factors_influencing = []
@@ -118,10 +140,14 @@ class ExplainabilityService:
         period_order = {"Q1": 1, "Q2": 2, "Q3": 3, "Q4": 4, "FY": 5}
         sorted_statements = sorted(
             statements,
-            key=lambda s: (s.fiscal_period.year, period_order.get(s.fiscal_period.period, 0))
+            key=lambda s: (
+                s.fiscal_period.year,
+                period_order.get(s.fiscal_period.period, 0),
+            ),
         )
 
         from app.domain.rules.trend_engine import classify_trend
+
         revenue_vals = []
         income_vals = []
         ocf_vals = []
@@ -138,21 +164,34 @@ class ExplainabilityService:
             rev_trend = str(classify_trend(revenue_vals))
             trend_factors_influencing.append({"metric": "revenue", "trend": rev_trend})
             if rev_trend in ["accelerating", "recovery"]:
-                positive_signals.append(f"Revenue is showing positive trend: {rev_trend}")
+                positive_signals.append(
+                    f"Revenue is showing positive trend: {rev_trend}"
+                )
             elif rev_trend in ["decline", "volatile"]:
-                negative_signals.append(f"Revenue is showing weak/volatile trend: {rev_trend}")
+                negative_signals.append(
+                    f"Revenue is showing weak/volatile trend: {rev_trend}"
+                )
         if income_vals:
             inc_trend = str(classify_trend(income_vals))
-            trend_factors_influencing.append({"metric": "net_income", "trend": inc_trend})
+            trend_factors_influencing.append(
+                {"metric": "net_income", "trend": inc_trend}
+            )
             if inc_trend in ["accelerating", "recovery"]:
-                positive_signals.append(f"Net income is showing positive trend: {inc_trend}")
+                positive_signals.append(
+                    f"Net income is showing positive trend: {inc_trend}"
+                )
             elif inc_trend in ["decline", "volatile"]:
-                negative_signals.append(f"Net income is showing weak/volatile trend: {inc_trend}")
+                negative_signals.append(
+                    f"Net income is showing weak/volatile trend: {inc_trend}"
+                )
 
         # Filter rules triggered
         rules_triggered = []
         for step in reasoning_steps:
-            if any(term in step.lower() for term in ["check", "passed", "failed", "requires", "risk"]):
+            if any(
+                term in step.lower()
+                for term in ["check", "passed", "failed", "requires", "risk"]
+            ):
                 rules_triggered.append(step)
 
         # Structure versions

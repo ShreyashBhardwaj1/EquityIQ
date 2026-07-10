@@ -66,7 +66,6 @@ async def test_db():
     async with db_manager.session_factory() as session:
         await session.execute(text("PRAGMA foreign_keys = OFF;"))
 
-
         await session.execute(text("DELETE FROM citations;"))
         await session.execute(text("DELETE FROM conversation_messages;"))
         await session.execute(text("DELETE FROM conversations;"))

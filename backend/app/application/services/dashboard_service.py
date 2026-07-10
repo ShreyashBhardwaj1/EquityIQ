@@ -38,7 +38,9 @@ class DashboardService:
         self.risk_repo = risk_repo
         self.rec_repo = rec_repo
 
-    async def get_dashboard(self, company_id: UUID, fiscal_period: str) -> dict[str, Any]:
+    async def get_dashboard(
+        self, company_id: UUID, fiscal_period: str
+    ) -> dict[str, Any]:
         """
         Assembles and returns a consolidated dashboard for a company and reporting period.
         """
@@ -55,7 +57,10 @@ class DashboardService:
         period_order = {"Q1": 1, "Q2": 2, "Q3": 3, "Q4": 4, "FY": 5}
         sorted_statements = sorted(
             statements,
-            key=lambda s: (s.fiscal_period.year, period_order.get(s.fiscal_period.period, 0))
+            key=lambda s: (
+                s.fiscal_period.year,
+                period_order.get(s.fiscal_period.period, 0),
+            ),
         )
 
         # Extract values for revenue, net_income, and operating_cash_flow
@@ -75,7 +80,9 @@ class DashboardService:
         trends = {
             "revenue": str(classify_trend(revenue_vals)) if revenue_vals else "stable",
             "net_income": str(classify_trend(income_vals)) if income_vals else "stable",
-            "operating_cash_flow": str(classify_trend(ocf_vals)) if ocf_vals else "stable",
+            "operating_cash_flow": str(classify_trend(ocf_vals))
+            if ocf_vals
+            else "stable",
         }
 
         # Determine strongest and weakest trends
@@ -90,12 +97,20 @@ class DashboardService:
         strongest_positive_trend = "Stable"
         weakest_trend = "Stable"
         if growth_rates:
-            sorted_growth = sorted(growth_rates.items(), key=lambda x: x[1], reverse=True)
+            sorted_growth = sorted(
+                growth_rates.items(), key=lambda x: x[1], reverse=True
+            )
             if sorted_growth[0][1] > 0.0:
-                strongest_positive_trend = f"{sorted_growth[0][0]} (+{sorted_growth[0][1] * 100:.1f}%)"
+                strongest_positive_trend = (
+                    f"{sorted_growth[0][0]} (+{sorted_growth[0][1] * 100:.1f}%)"
+                )
             else:
-                strongest_positive_trend = f"{sorted_growth[0][0]} ({sorted_growth[0][1] * 100:.1f}%)"
-            weakest_trend = f"{sorted_growth[-1][0]} ({sorted_growth[-1][1] * 100:.1f}%)"
+                strongest_positive_trend = (
+                    f"{sorted_growth[0][0]} ({sorted_growth[0][1] * 100:.1f}%)"
+                )
+            weakest_trend = (
+                f"{sorted_growth[-1][0]} ({sorted_growth[-1][1] * 100:.1f}%)"
+            )
 
         # 2. Extract reasoning steps from audit log history
         history_list = await self.rec_repo.list_history(company_id, fiscal_period)
@@ -108,8 +123,16 @@ class DashboardService:
             reasoning_steps = rec.rationale.split(", ")
 
         # 3. Sort top 5 ratios by qualitative status strength
-        status_rank = {"Excellent": 5, "Healthy": 4, "Watch": 3, "Weak": 2, "Critical": 1}
-        sorted_ratios = sorted(ratios, key=lambda r: status_rank.get(r.status, 0), reverse=True)
+        status_rank = {
+            "Excellent": 5,
+            "Healthy": 4,
+            "Watch": 3,
+            "Weak": 2,
+            "Critical": 1,
+        }
+        sorted_ratios = sorted(
+            ratios, key=lambda r: status_rank.get(r.status, 0), reverse=True
+        )
         top_5_ratios = [
             {"ratio_name": r.ratio_name, "value": round(r.value, 4), "status": r.status}
             for r in sorted_ratios[:5]
@@ -117,7 +140,9 @@ class DashboardService:
 
         # 4. Sort top 3 risks by severity
         severity_rank = {"severe": 3, "moderate": 2, "low": 1}
-        sorted_risks = sorted(risks, key=lambda r: severity_rank.get(str(r.severity), 0), reverse=True)
+        sorted_risks = sorted(
+            risks, key=lambda r: severity_rank.get(str(r.severity), 0), reverse=True
+        )
         top_3_risks = [
             {
                 "category": r.risk_category,
@@ -140,8 +165,15 @@ class DashboardService:
             "company_id": str(company_id),
             "fiscal_period": fiscal_period,
             "overall_score": health.overall_score if health else 5.0,
-            "category_scores": health.category_scores if health else {
-                "liquidity": 5.0, "profitability": 5.0, "leverage": 5.0, "efficiency": 5.0, "cash_flow": 5.0, "growth": 5.0
+            "category_scores": health.category_scores
+            if health
+            else {
+                "liquidity": 5.0,
+                "profitability": 5.0,
+                "leverage": 5.0,
+                "efficiency": 5.0,
+                "cash_flow": 5.0,
+                "growth": 5.0,
             },
             "top_5_ratios": top_5_ratios,
             "top_3_risks": top_3_risks,
@@ -164,7 +196,9 @@ class DashboardService:
             },
             "risks": {
                 "severe_count": sum(1 for r in risks if str(r.severity) == "severe"),
-                "moderate_count": sum(1 for r in risks if str(r.severity) == "moderate"),
+                "moderate_count": sum(
+                    1 for r in risks if str(r.severity) == "moderate"
+                ),
                 "list": [
                     {
                         "category": r.risk_category,

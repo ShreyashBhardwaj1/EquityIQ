@@ -21,7 +21,9 @@ from app.infrastructure.db.models.recommendation_history import RecommendationHi
 from app.infrastructure.db.repositories.base_repo import BaseRepository
 
 
-class SQLAlchemyRecommendationRepository(BaseRepository[RecommendationORM], RecommendationRepository):
+class SQLAlchemyRecommendationRepository(
+    BaseRepository[RecommendationORM], RecommendationRepository
+):
     """
     SQLAlchemy-backed implementation of the RecommendationRepository interface.
     """
@@ -42,7 +44,9 @@ class SQLAlchemyRecommendationRepository(BaseRepository[RecommendationORM], Reco
 
     def _to_orm(self, domain: Recommendation) -> RecommendationORM:
         """Translates Domain Entity to ORM model."""
-        fiscal_period_val = str(domain.fiscal_period) if domain.fiscal_period else "unknown"
+        fiscal_period_val = (
+            str(domain.fiscal_period) if domain.fiscal_period else "unknown"
+        )
         return RecommendationORM(
             id=domain.id,
             company_id=domain.company_id,
@@ -77,7 +81,9 @@ class SQLAlchemyRecommendationRepository(BaseRepository[RecommendationORM], Reco
             is_active=domain.is_active,
         )
 
-    def _history_to_domain(self, orm: RecommendationHistoryORM) -> RecommendationHistory:
+    def _history_to_domain(
+        self, orm: RecommendationHistoryORM
+    ) -> RecommendationHistory:
         """Translates History ORM model to History Domain Entity."""
         parts = orm.fiscal_period.split("-")
         fp = FiscalPeriod(parts[0], int(parts[1]))
@@ -95,7 +101,9 @@ class SQLAlchemyRecommendationRepository(BaseRepository[RecommendationORM], Reco
             created_at=orm.created_at,
         )
 
-    def _history_to_orm(self, domain: RecommendationHistory) -> RecommendationHistoryORM:
+    def _history_to_orm(
+        self, domain: RecommendationHistory
+    ) -> RecommendationHistoryORM:
         """Translates History Domain Entity to History ORM model."""
         return RecommendationHistoryORM(
             id=domain.id,
@@ -168,10 +176,14 @@ class SQLAlchemyRecommendationRepository(BaseRepository[RecommendationORM], Reco
         """
         List historical recommendation change logs for audit trails.
         """
-        query = select(RecommendationHistoryORM).where(
-            RecommendationHistoryORM.company_id == company_id,
-            RecommendationHistoryORM.fiscal_period == fiscal_period,
-        ).order_by(RecommendationHistoryORM.created_at.desc())
+        query = (
+            select(RecommendationHistoryORM)
+            .where(
+                RecommendationHistoryORM.company_id == company_id,
+                RecommendationHistoryORM.fiscal_period == fiscal_period,
+            )
+            .order_by(RecommendationHistoryORM.created_at.desc())
+        )
         result = await self.session.execute(query)
         orms = result.scalars().all()
         return [self._history_to_domain(orm) for orm in orms]
@@ -180,9 +192,11 @@ class SQLAlchemyRecommendationRepository(BaseRepository[RecommendationORM], Reco
         """
         Retrieve currently active recommendation policy settings.
         """
-        query = select(RecommendationPolicyORM).where(
-            RecommendationPolicyORM.is_active
-        ).limit(1)
+        query = (
+            select(RecommendationPolicyORM)
+            .where(RecommendationPolicyORM.is_active)
+            .limit(1)
+        )
         result = await self.session.execute(query)
         orm = result.scalar_one_or_none()
         return self._policy_to_domain(orm) if orm else None

@@ -140,10 +140,14 @@ class FinancialIntelligenceService:
         """
         # 1. Fetch current statements
         all_statements = await self.statement_repo.list_by_company(company_id)
-        curr_statements = [s for s in all_statements if str(s.fiscal_period) == fiscal_period]
+        curr_statements = [
+            s for s in all_statements if str(s.fiscal_period) == fiscal_period
+        ]
 
         if not curr_statements:
-            raise ValueError(f"No financial statements found for period {fiscal_period}")
+            raise ValueError(
+                f"No financial statements found for period {fiscal_period}"
+            )
 
         # Flat dictionary of line items
         curr_line_items: dict[str, float] = {}
@@ -154,8 +158,12 @@ class FinancialIntelligenceService:
         prev_period_key = get_previous_period(fiscal_period)
         yoy_period_key = get_yoy_period(fiscal_period)
 
-        prev_statements = [s for s in all_statements if str(s.fiscal_period) == prev_period_key]
-        yoy_statements = [s for s in all_statements if str(s.fiscal_period) == yoy_period_key]
+        prev_statements = [
+            s for s in all_statements if str(s.fiscal_period) == prev_period_key
+        ]
+        yoy_statements = [
+            s for s in all_statements if str(s.fiscal_period) == yoy_period_key
+        ]
 
         prev_line_items: dict[str, float] = {}
         for s in prev_statements:
@@ -166,11 +174,15 @@ class FinancialIntelligenceService:
             yoy_line_items.update(s.normalized_line_items)
 
         # Compute growth rates for key items (YoY or QoQ based on period type)
-        comparison_line_items = yoy_line_items if fiscal_period.startswith("Q") else prev_line_items
+        comparison_line_items = (
+            yoy_line_items if fiscal_period.startswith("Q") else prev_line_items
+        )
         growth_rates: dict[str, float] = {}
         for key in ["revenue", "net_income", "operating_cash_flow"]:
             if key in curr_line_items and key in comparison_line_items:
-                growth_rates[key] = calculate_growth_rate(comparison_line_items[key], curr_line_items[key])
+                growth_rates[key] = calculate_growth_rate(
+                    comparison_line_items[key], curr_line_items[key]
+                )
 
         # 3. Calculate financial ratios
         ratios_dict = RatioRegistry.calculate_ratios(curr_line_items)
@@ -232,7 +244,9 @@ class FinancialIntelligenceService:
 
         # 6. Evaluate recommendation rating
         policy = await self.get_or_create_active_policy()
-        severe_risks_count = sum(1 for r in risk_entities if r.severity.value == "severe")
+        severe_risks_count = sum(
+            1 for r in risk_entities if r.severity.value == "severe"
+        )
 
         rating, reasoning_steps = evaluate_recommendation(
             health_score=health_entity.overall_score,
@@ -285,4 +299,3 @@ class FinancialIntelligenceService:
             "history": history_entity,
             "portfolio_signal": portfolio_signal,
         }
-

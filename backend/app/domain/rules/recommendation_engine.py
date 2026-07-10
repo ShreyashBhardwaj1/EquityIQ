@@ -31,7 +31,9 @@ def evaluate_recommendation(
         for metric, growth in growth_rates.items():
             if growth < 0.0:
                 has_positive_growth = False
-                reasoning_steps.append(f"Negative growth detected in {metric}: {growth * 100:.1f}%.")
+                reasoning_steps.append(
+                    f"Negative growth detected in {metric}: {growth * 100:.1f}%."
+                )
 
     # Define execution checks in descending rating order
     ratings_hierarchy = [
@@ -54,17 +56,23 @@ def evaluate_recommendation(
 
         # Validate score limit
         if health_score < score_thresh:
-            reasoning_steps.append(f"Failed {rating.upper()} score check (score {health_score:.2f} < threshold {score_thresh}).")
+            reasoning_steps.append(
+                f"Failed {rating.upper()} score check (score {health_score:.2f} < threshold {score_thresh})."
+            )
             continue
 
         # Validate severe risks limit
         if severe_risks_count > risk_limit:
-            reasoning_steps.append(f"Failed {rating.upper()} risk check (severe risk count {severe_risks_count} > limit {risk_limit}).")
+            reasoning_steps.append(
+                f"Failed {rating.upper()} risk check (severe risk count {severe_risks_count} > limit {risk_limit})."
+            )
             continue
 
         # Validate positive growth requirement
         if needs_growth and not has_positive_growth:
-            reasoning_steps.append(f"Failed {rating.upper()} growth check (requires positive growth on designated metrics).")
+            reasoning_steps.append(
+                f"Failed {rating.upper()} growth check (requires positive growth on designated metrics)."
+            )
             continue
 
         # All checks passed for this rating

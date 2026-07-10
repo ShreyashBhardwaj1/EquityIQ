@@ -53,7 +53,6 @@ class SQLAlchemyRatioRepository(BaseRepository[RatioORM], RatioRepository):
             ratio_engine_version=domain.formula_version,
         )
 
-
     async def get_by_period(
         self, company_id: UUID, fiscal_period: str, workspace_id: UUID | None = None
     ) -> list[Ratio]:

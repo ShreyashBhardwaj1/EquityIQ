@@ -57,4 +57,3 @@ __all__ = [
     "evaluate_recommendation",
     "evaluate_risks",
 ]
-

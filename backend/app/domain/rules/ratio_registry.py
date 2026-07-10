@@ -278,6 +278,7 @@ def classify_ratio_status(ratio_name: str, value: float) -> str:
     Driven entirely by boundaries in centralized configuration.
     """
     from app.core.financial_config import financial_config
+
     bounds = financial_config.scoring_boundaries
 
     high_key = f"{ratio_name}_high"

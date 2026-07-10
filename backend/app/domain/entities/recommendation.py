@@ -42,4 +42,3 @@ class Recommendation(BaseModel):
     created_at: datetime = Field(
         default_factory=datetime.utcnow, description="Recommendation creation timestamp"
     )
-

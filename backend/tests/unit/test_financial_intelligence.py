@@ -77,7 +77,6 @@ def test_health_scoring_rules() -> None:
     assert score_payload["confidence"] < 1.0  # Partially defined categories
 
 
-
 def test_risk_assessment_engine() -> None:
     # Safe ratios
     ratios_safe: dict[str, float | None] = {
@@ -106,6 +105,7 @@ def test_risk_assessment_engine() -> None:
 
 def test_recommendation_engine() -> None:
     from app.domain.entities.financial_intelligence import RecommendationPolicy
+
     policy = RecommendationPolicy(
         policy_id=uuid.uuid4(),
         policy_name="Test Policy",
@@ -156,7 +156,6 @@ def test_recommendation_engine() -> None:
     assert rating == RecommendationType.HOLD
 
 
-
 @pytest.mark.asyncio
 async def test_financial_intelligence_service() -> None:
     # Setup mocks
@@ -181,6 +180,7 @@ async def test_financial_intelligence_service() -> None:
         FinancialStatement,
         StatementType,
     )
+
     statement = FinancialStatement(
         id=uuid.uuid4(),
         company_id=uuid.uuid4(),
@@ -193,17 +193,32 @@ async def test_financial_intelligence_service() -> None:
 
     # Stub active policy lookup
     from app.domain.entities.financial_intelligence import RecommendationPolicy
+
     policy = RecommendationPolicy(
         policy_id=uuid.uuid4(),
         policy_name="Test Policy",
         policy_version="1.0.0",
-        health_score_thresholds={"strong_buy": 8.0, "buy": 7.0, "hold": 4.5, "sell": 2.0, "strong_sell": 0.0},
-        max_severe_risks_allowed={"strong_buy": 0, "buy": 1, "hold": 2, "sell": 3, "strong_sell": 99},
+        health_score_thresholds={
+            "strong_buy": 8.0,
+            "buy": 7.0,
+            "hold": 4.5,
+            "sell": 2.0,
+            "strong_sell": 0.0,
+        },
+        max_severe_risks_allowed={
+            "strong_buy": 0,
+            "buy": 1,
+            "hold": 2,
+            "sell": 3,
+            "strong_sell": 99,
+        },
         requires_positive_growth=["buy"],
         is_active=True,
     )
     rec_repo.get_active_policy = AsyncMock(return_value=policy)
-    rec_repo.save = AsyncMock(return_value=MagicMock(id=uuid.uuid4(), recommendation=RecommendationType.BUY))
+    rec_repo.save = AsyncMock(
+        return_value=MagicMock(id=uuid.uuid4(), recommendation=RecommendationType.BUY)
+    )
 
     service = FinancialIntelligenceService(
         statement_repo=stmt_repo,
@@ -213,9 +228,9 @@ async def test_financial_intelligence_service() -> None:
         rec_repo=rec_repo,
     )
 
-    result = await service.run_analysis(company_id=statement.company_id, fiscal_period="FY-2024")
+    result = await service.run_analysis(
+        company_id=statement.company_id, fiscal_period="FY-2024"
+    )
     assert "health_score" in result
     assert "recommendation" in result
     assert result["portfolio_signal"]["rating"] == "strong_sell"
-
-

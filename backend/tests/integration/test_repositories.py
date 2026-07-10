@@ -454,4 +454,3 @@ async def test_recommendation_repository_crud(db_session: AsyncSession) -> None:
     await repo.delete(company.id, "FY-2024")
     fetched_deleted_rec = await repo.get(company.id, "FY-2024")
     assert fetched_deleted_rec is None
-

@@ -35,5 +35,5 @@ class Ratio(BaseModel):
     def status(self) -> str:
         """Determines qualitative classification (Excellent, Healthy, Watch, etc.)"""
         from app.domain.rules.ratio_registry import classify_ratio_status
-        return classify_ratio_status(self.ratio_name, self.value)
 
+        return classify_ratio_status(self.ratio_name, self.value)

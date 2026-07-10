@@ -63,7 +63,9 @@ def calculate_health_score(
             score = score_positive_ratio(val, low, high)
             category_ratios["liquidity"].append(score)
             if score <= 3.0:
-                explanations.append(f"Weak liquidity indicated by low {key.replace('_', ' ')}: {val:.2f}")
+                explanations.append(
+                    f"Weak liquidity indicated by low {key.replace('_', ' ')}: {val:.2f}"
+                )
 
     # 2. Score Leverage
     leverage_keys = ["debt_to_equity", "debt_ratio", "interest_coverage"]
@@ -81,7 +83,9 @@ def calculate_health_score(
             else:
                 score = score_negative_ratio(val, low, high)
                 if score <= 3.0:
-                    explanations.append(f"Elevated solvency risk from high {key.replace('_', ' ')}: {val:.2f}")
+                    explanations.append(
+                        f"Elevated solvency risk from high {key.replace('_', ' ')}: {val:.2f}"
+                    )
             category_ratios["leverage"].append(score)
 
     # 3. Score Profitability
@@ -96,7 +100,9 @@ def calculate_health_score(
             score = score_positive_ratio(val, low, high)
             category_ratios["profitability"].append(score)
             if score <= 3.0:
-                explanations.append(f"Subdued profitability from low {key.replace('_', ' ')}: {val:.2f}")
+                explanations.append(
+                    f"Subdued profitability from low {key.replace('_', ' ')}: {val:.2f}"
+                )
 
     # 4. Score Efficiency
     eff_keys = ["asset_turnover"]
@@ -131,7 +137,9 @@ def calculate_health_score(
             score = score_positive_ratio(val, -0.05, 0.10)
             category_ratios["growth"].append(score)
             if val < 0:
-                explanations.append(f"Negative growth observed in {key.replace('_', ' ')}: {val * 100:.1f}%")
+                explanations.append(
+                    f"Negative growth observed in {key.replace('_', ' ')}: {val * 100:.1f}%"
+                )
 
     # Aggregate category scores
     category_scores: dict[str, float] = {}
@@ -153,25 +161,35 @@ def calculate_health_score(
     overall_score = 0.0
     if total_active_weight > 0.0:
         for cat_name, cat_weight in active_weights.items():
-            overall_score += category_scores[cat_name] * (cat_weight / total_active_weight)
+            overall_score += category_scores[cat_name] * (
+                cat_weight / total_active_weight
+            )
     else:
         overall_score = 5.0  # Neutral fallback
 
     # Add general description to explanation
     if overall_score >= 7.5:
-        explanations.insert(0, f"Strong overall financial position (Score: {overall_score:.2f})")
+        explanations.insert(
+            0, f"Strong overall financial position (Score: {overall_score:.2f})"
+        )
     elif overall_score >= 4.5:
-        explanations.insert(0, f"Moderate financial health (Score: {overall_score:.2f})")
+        explanations.insert(
+            0, f"Moderate financial health (Score: {overall_score:.2f})"
+        )
     else:
-        explanations.insert(0, f"Caution: Weak financial health profile (Score: {overall_score:.2f})")
+        explanations.insert(
+            0, f"Caution: Weak financial health profile (Score: {overall_score:.2f})"
+        )
 
     retrieval_confidence = 0.95
     financial_data_quality = calculated_ratios_count / max(1, ratios_count)
 
     if category_scores:
         avg = sum(category_scores.values()) / len(category_scores)
-        variance = sum((x - avg) ** 2 for x in category_scores.values()) / len(category_scores)
-        std_dev = variance ** 0.5
+        variance = sum((x - avg) ** 2 for x in category_scores.values()) / len(
+            category_scores
+        )
+        std_dev = variance**0.5
         rule_agreement = max(0.0, min(1.0, 1.0 - (std_dev / 5.0)))
     else:
         rule_agreement = 1.0
@@ -189,7 +207,12 @@ def calculate_health_score(
             else:
                 trend_consistency = 0.8
 
-    overall_confidence = (retrieval_confidence + financial_data_quality + rule_agreement + trend_consistency) / 4.0
+    overall_confidence = (
+        retrieval_confidence
+        + financial_data_quality
+        + rule_agreement
+        + trend_consistency
+    ) / 4.0
 
     confidence_breakdown = {
         "retrieval_confidence": round(retrieval_confidence, 2),
@@ -207,4 +230,3 @@ def calculate_health_score(
         "confidence": round(overall_confidence, 2),
         "confidence_breakdown": confidence_breakdown,
     }
-
