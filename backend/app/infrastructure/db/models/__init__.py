@@ -28,6 +28,10 @@ from app.infrastructure.db.models.recommendation import (
 )
 from app.infrastructure.db.models.recommendation_history import RecommendationHistoryORM
 from app.infrastructure.db.models.refresh_token import RefreshTokenORM
+from app.infrastructure.db.models.report import (
+    FinancialReportORM,
+    FinancialReportVersionORM,
+)
 from app.infrastructure.db.models.risk_assessment import RiskAssessmentORM
 from app.infrastructure.db.models.user import UserORM
 from app.infrastructure.db.models.workspace import WorkspaceORM
@@ -45,6 +49,8 @@ __all__ = [
     "EmbeddingManifestORM",
     "EmbeddingORM",
     "FinancialHealthScoreORM",
+    "FinancialReportORM",
+    "FinancialReportVersionORM",
     "FinancialStatementORM",
     "FinancialStatementVersionORM",
     "LLMRequestORM",

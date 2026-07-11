@@ -2,8 +2,19 @@
 Centralized dependency injection providers for FastAPI.
 """
 
+from __future__ import annotations
+
 from collections.abc import Callable
+from typing import TYPE_CHECKING
 from uuid import UUID
+
+if TYPE_CHECKING:
+    from app.application.services.report_generation_service import (
+        ReportGenerationService,
+    )
+    from app.infrastructure.db.repositories.report_repo import (
+        SQLAlchemyReportRepository,
+    )
 
 from fastapi import Depends, Header, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -670,4 +681,69 @@ def get_dashboard_service(
         health_repo=health_repo,
         risk_repo=risk_repo,
         rec_repo=rec_repo,
+    )
+
+
+def get_report_repository(
+    session: AsyncSession = Depends(get_db_session),
+) -> SQLAlchemyReportRepository:
+    """Dependency provider yielding ReportRepository."""
+    from app.infrastructure.db.repositories.report_repo import (
+        SQLAlchemyReportRepository,
+    )
+
+    return SQLAlchemyReportRepository(session)
+
+
+def get_report_generation_service(
+    session: AsyncSession = Depends(get_db_session),
+    llm_provider: LLMProvider = Depends(get_llm_provider),
+) -> ReportGenerationService:
+    """Dependency provider yielding the ReportGenerationService orchestrator."""
+    from app.application.services.report_context_assembler import ReportContextAssembler
+    from app.application.services.report_generation_service import (
+        ReportGenerationService,
+    )
+    from app.application.services.report_markdown_validator import MarkdownValidator
+    from app.application.services.report_prompt_builder import ReportPromptBuilder
+    from app.application.services.report_section_validator import ReportSectionValidator
+    from app.infrastructure.db.repositories.health_score_repo import (
+        SQLAlchemyHealthScoreRepository,
+    )
+    from app.infrastructure.db.repositories.ratio_repo import SQLAlchemyRatioRepository
+    from app.infrastructure.db.repositories.recommendation_repo import (
+        SQLAlchemyRecommendationRepository,
+    )
+    from app.infrastructure.db.repositories.report_repo import (
+        SQLAlchemyReportRepository,
+    )
+    from app.infrastructure.db.repositories.risk_assessment_repo import (
+        SQLAlchemyRiskAssessmentRepository,
+    )
+    from app.infrastructure.db.repositories.statement_repo import (
+        SQLAlchemyFinancialStatementRepository,
+    )
+
+    statement_repo = SQLAlchemyFinancialStatementRepository(session)
+    ratio_repo = SQLAlchemyRatioRepository(session)
+    health_repo = SQLAlchemyHealthScoreRepository(session)
+    risk_repo = SQLAlchemyRiskAssessmentRepository(session)
+    rec_repo = SQLAlchemyRecommendationRepository(session)
+    report_repo = SQLAlchemyReportRepository(session)
+
+    context_assembler = ReportContextAssembler(
+        statement_repo=statement_repo,
+        ratio_repo=ratio_repo,
+        health_repo=health_repo,
+        risk_repo=risk_repo,
+        rec_repo=rec_repo,
+    )
+
+    return ReportGenerationService(
+        context_assembler=context_assembler,
+        prompt_builder=ReportPromptBuilder(),
+        markdown_validator=MarkdownValidator(),
+        section_validator=ReportSectionValidator(),
+        llm_provider=llm_provider,
+        report_repo=report_repo,
     )

@@ -336,3 +336,188 @@ async def execute_parsing_pipeline(document_id: UUID, workspace_id: UUID) -> Non
         logger.info(
             f"Parsing, chunking, and vector indexing successfully completed for document: {document_id}"
         )
+
+
+# ─── Report Generation Task ───────────────────────────────────────────────────
+
+
+@celery_app.task(bind=True, base=ParsingTask, max_retries=2, default_retry_delay=10)  # type: ignore[untyped-decorator]
+def generate_report_task(
+    self: ParsingTask,
+    report_id_str: str,
+    company_id_str: str,
+    workspace_id_str: str,
+    fiscal_period: str,
+    company_name: str,
+    ticker: str,
+    generated_by_str: str,
+) -> None:
+    """
+    Celery background worker task for asynchronous financial report generation.
+
+    Purpose:
+        Deserializes inputs, sets up database context, and runs the
+        full report generation pipeline asynchronously.
+
+    Inputs:
+        self: Active Celery task context.
+        report_id_str: UUID string of the pre-created FinancialReport entity.
+        company_id_str: UUID string of the target company.
+        workspace_id_str: UUID string of the owning workspace.
+        fiscal_period: Target fiscal period string (e.g., 'FY-2024').
+        company_name: Human-readable company name.
+        ticker: Exchange ticker symbol.
+        generated_by_str: UUID string of the initiating user.
+
+    Outputs:
+        None.
+
+    Failure Behavior:
+        On exception, the FinancialReport entity is updated to FAILED status
+        with the error message persisted. Celery retries up to max_retries times.
+    """
+    report_id = UUID(report_id_str)
+    company_id = UUID(company_id_str)
+    workspace_id = UUID(workspace_id_str)
+    generated_by = UUID(generated_by_str)
+
+    logger.info(
+        f"Starting report generation task: report_id={report_id} "
+        f"company={company_id} period={fiscal_period}"
+    )
+
+    self.run_async(
+        execute_report_generation_pipeline(
+            report_id=report_id,
+            company_id=company_id,
+            workspace_id=workspace_id,
+            fiscal_period=fiscal_period,
+            company_name=company_name,
+            ticker=ticker,
+            generated_by=generated_by,
+        )
+    )
+
+
+async def execute_report_generation_pipeline(
+    report_id: UUID,
+    company_id: UUID,
+    workspace_id: UUID,
+    fiscal_period: str,
+    company_name: str,
+    ticker: str,
+    generated_by: UUID,
+) -> None:
+    """
+    Async pipeline executing the report generation flow.
+
+    Sets up all dependencies, retrieves the pre-created report, and delegates
+    to ReportGenerationService to execute the full section generation pipeline.
+    """
+    from app.application.services.report_context_assembler import ReportContextAssembler
+    from app.application.services.report_generation_service import (
+        ReportGenerationService,
+    )
+    from app.application.services.report_markdown_validator import MarkdownValidator
+    from app.application.services.report_prompt_builder import ReportPromptBuilder
+    from app.application.services.report_section_validator import ReportSectionValidator
+    from app.core.dependencies import get_llm_provider
+    from app.domain.entities.report import ReportStatus
+    from app.infrastructure.db.repositories.health_score_repo import (
+        SQLAlchemyHealthScoreRepository,
+    )
+    from app.infrastructure.db.repositories.ratio_repo import SQLAlchemyRatioRepository
+    from app.infrastructure.db.repositories.recommendation_repo import (
+        SQLAlchemyRecommendationRepository,
+    )
+    from app.infrastructure.db.repositories.report_repo import (
+        SQLAlchemyReportRepository,
+    )
+    from app.infrastructure.db.repositories.risk_assessment_repo import (
+        SQLAlchemyRiskAssessmentRepository,
+    )
+    from app.infrastructure.db.repositories.statement_repo import (
+        SQLAlchemyFinancialStatementRepository,
+    )
+
+    db_manager.initialize()
+
+    async with db_manager.session_factory() as session:
+        report_repo = SQLAlchemyReportRepository(session)
+
+        # Retrieve pre-created report
+        report = await report_repo.get(report_id, workspace_id)
+        if not report:
+            logger.error(
+                f"Report {report_id} not found in workspace {workspace_id}. Aborting."
+            )
+            return
+
+        # Mark Celery task ID on report
+        try:
+            from celery import current_task
+
+            if current_task and current_task.request.id:
+                report = report.model_copy(
+                    update={"celery_task_id": current_task.request.id}
+                )
+                await report_repo.save(report)
+                await session.commit()
+        except Exception:
+            pass  # Non-critical
+
+        # Build service stack
+        statement_repo = SQLAlchemyFinancialStatementRepository(session)
+        ratio_repo = SQLAlchemyRatioRepository(session)
+        health_repo = SQLAlchemyHealthScoreRepository(session)
+        risk_repo = SQLAlchemyRiskAssessmentRepository(session)
+        rec_repo = SQLAlchemyRecommendationRepository(session)
+
+        context_assembler = ReportContextAssembler(
+            statement_repo=statement_repo,
+            ratio_repo=ratio_repo,
+            health_repo=health_repo,
+            risk_repo=risk_repo,
+            rec_repo=rec_repo,
+        )
+        prompt_builder = ReportPromptBuilder()
+        markdown_validator = MarkdownValidator()
+        section_validator = ReportSectionValidator()
+        llm_provider = get_llm_provider()
+
+        service = ReportGenerationService(
+            context_assembler=context_assembler,
+            prompt_builder=prompt_builder,
+            markdown_validator=markdown_validator,
+            section_validator=section_validator,
+            llm_provider=llm_provider,
+            report_repo=report_repo,
+        )
+
+        try:
+            final_report = await service.generate_report(
+                report=report,
+                company_name=company_name,
+                ticker=ticker,
+            )
+            await session.commit()
+            logger.info(
+                f"Report {report_id} completed successfully. "
+                f"Status: {final_report.status}"
+            )
+        except Exception as e:
+            logger.exception(f"Report generation pipeline failed: {e}")
+            try:
+                from app.domain.entities.report import ReportStatus
+
+                failed = report.model_copy(
+                    update={
+                        "status": ReportStatus.FAILED,
+                        "error_message": str(e),
+                    }
+                )
+                await report_repo.save(failed)
+                await session.commit()
+            except Exception:
+                pass
+            raise

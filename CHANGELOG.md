@@ -4,6 +4,40 @@ All notable changes to the EquityIQ project will be documented in this file.
 
 ---
 
+## [v1.1.0-report-generation-streaming] - 2026-07-11
+
+This release introduces the complete Report Generation & Streaming Engine (Milestone 9). The engine produces multi-section, LLM-synthesized investment research reports grounded exclusively in the deterministic outputs of the Milestone 8 Financial Intelligence pipeline. The LLM acts strictly as a narrative synthesizer — it never recalculates or invents financial metrics.
+
+### Added
+- **FinancialReport & FinancialReportVersion Entities**: New Pydantic domain entities tracking report lifecycle, versioning, content snapshots, model provenance, and generation metadata in `app/domain/entities/report.py`.
+- **ReportRepository Protocol**: New domain interface defining `get`, `save`, `list_by_company`, `save_version`, and `get_versions` contracts in `app/domain/interfaces/repositories.py`.
+- **ORM Persistence Models**: `FinancialReportORM` and `FinancialReportVersionORM` SQLAlchemy mappings in `app/infrastructure/db/models/report.py`.
+- **SQLAlchemyReportRepository**: Complete upsert, list, and versioning adapter in `app/infrastructure/db/repositories/report_repo.py`.
+- **Alembic Migration**: Migration `f1a2b3c4d5e6` creating `financial_reports` and `financial_report_versions` tables.
+- **ReportContextAssembler**: Reads exclusively from Milestone 8 pre-computed tables (health scores, ratios, risks, recommendations) into a typed `ReportContext` grounding object.
+- **ReportPromptBuilder**: Loads 8 structured Markdown prompt templates and binds `ReportContext` values to produce section-level prompts.
+- **MarkdownValidator**: Structural LLM output validation — minimum length, unresolved placeholder detection, and balanced code block checks.
+- **ReportSectionValidator**: Domain boundary enforcement — detects hallucinated ratings, missing scores, and fabricated risk categories per section.
+- **ReportGenerationService**: Full 7-section pipeline orchestrator (context assembly → prompt building → LLM generation → validation → assembly → storage → version snapshot).
+- **ReportSSEStreamingService**: Structured SSE event builders (`queued`, `progress`, `token`, `section_started`, `section_completed`, `completed`, `failed`, `heartbeat`) with async word-level replay generator.
+- **ExportService**: Markdown (raw bytes), PDF (WeasyPrint with CSS styling), and DOCX (python-docx) export with standardized footer and graceful dependency fallback.
+- **generate_report_task**: Celery background task executing the async pipeline in `app/workers/tasks.py`.
+- **Report API Router**: 5 new endpoints under `GET|POST /companies/{id}/reports/...` covering generate, list, detail, SSE stream, and multi-format download.
+- **Prompt Templates**: 8 structured Markdown templates in `app/prompts/reports/` covering system safety rules, executive summary, financial health, ratio analysis, trend analysis, risk assessment, recommendation, and appendix sections.
+
+### Changed
+- **`app/main.py`**: Registered `reports_router`.
+- **`app/core/dependencies.py`**: Added `get_report_repository` and `get_report_generation_service` dependency providers.
+- **`app/domain/rules/recommendation_engine.py`**: Fixed pre-existing MyPy `attr-defined` error — `RecommendationType` now imported from its canonical source `app.domain.entities.recommendation`.
+
+### Validation
+- **Ruff**: Passed formatting and check cleanly.
+- **MyPy**: **0 errors** (fully clean type checks — first time in project history).
+- **Import-Linter**: Domain boundary rule KEPT (194 files, 893 dependencies analyzed).
+- **Pytest**: **133 tests passing** cleanly.
+
+---
+
 ## [v1.0.0-financial-intelligence] - 2026-07-10
 
 This release introduces the completed Financial Intelligence & Recommendation Engine, featuring dynamic registry-driven ratio calculations, multi-period trend categorization (accelerating, decelerating, recovery, decline, stable, volatile), health scoring, risk evaluation, policy-driven investment recommendations, and a consolidated dashboard endpoint with structured confidence breakdowns.

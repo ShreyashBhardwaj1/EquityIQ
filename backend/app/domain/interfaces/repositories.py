@@ -30,6 +30,7 @@ from app.domain.entities.financial_statement_version import (
 from app.domain.entities.parsing_manifest import ParsingManifest
 from app.domain.entities.ratio import Ratio
 from app.domain.entities.recommendation import Recommendation
+from app.domain.entities.report import FinancialReport, FinancialReportVersion
 from app.domain.entities.user import User
 from app.domain.entities.workspace import Workspace, WorkspaceMembership
 
@@ -527,4 +528,32 @@ class RecommendationRepository(Protocol):
 
     async def save_policy(self, policy: RecommendationPolicy) -> RecommendationPolicy:
         """Save or register a recommendation policy."""
+        ...
+
+
+class ReportRepository(Protocol):
+    """Abstract interface for FinancialReport data persistence operations."""
+
+    async def get(
+        self, report_id: "UUID", workspace_id: "UUID"
+    ) -> "FinancialReport | None":
+        """Retrieve a report by its unique ID and workspace scoping."""
+        ...
+
+    async def list_by_company(
+        self, company_id: "UUID", workspace_id: "UUID"
+    ) -> "list[FinancialReport]":
+        """List all reports for a company scoped to a workspace."""
+        ...
+
+    async def save(self, report: "FinancialReport") -> "FinancialReport":
+        """Save or update a report entity."""
+        ...
+
+    async def save_version(self, version: "FinancialReportVersion") -> None:
+        """Save a historical version snapshot of a report."""
+        ...
+
+    async def get_versions(self, report_id: "UUID") -> "list[FinancialReportVersion]":
+        """List all historical versions of a report."""
         ...

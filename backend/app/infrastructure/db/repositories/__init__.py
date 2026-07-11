@@ -33,6 +33,9 @@ from app.infrastructure.db.repositories.recommendation_repo import (
 from app.infrastructure.db.repositories.refresh_token_repo import (
     SQLAlchemyRefreshTokenRepository,
 )
+from app.infrastructure.db.repositories.report_repo import (
+    SQLAlchemyReportRepository,
+)
 from app.infrastructure.db.repositories.risk_assessment_repo import (
     SQLAlchemyRiskAssessmentRepository,
 )
@@ -59,6 +62,7 @@ __all__ = [
     "SQLAlchemyRatioRepository",
     "SQLAlchemyRecommendationRepository",
     "SQLAlchemyRefreshTokenRepository",
+    "SQLAlchemyReportRepository",
     "SQLAlchemyRiskAssessmentRepository",
     "SQLAlchemyUserRepository",
     "SQLAlchemyWorkspaceRepository",

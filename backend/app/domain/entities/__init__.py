@@ -37,6 +37,11 @@ from app.domain.entities.parsing_manifest import ParsingManifest
 from app.domain.entities.portfolio_signal import PortfolioSignal
 from app.domain.entities.ratio import Ratio
 from app.domain.entities.recommendation import Recommendation, RecommendationType
+from app.domain.entities.report import (
+    FinancialReport,
+    FinancialReportVersion,
+    ReportStatus,
+)
 from app.domain.entities.retrieval import RetrievalQuery, RetrievalResult
 from app.domain.entities.user import User, UserRole
 from app.domain.entities.valuation import (
@@ -62,6 +67,8 @@ __all__ = [
     "Embedding",
     "EmbeddingManifest",
     "FinancialHealthScore",
+    "FinancialReport",
+    "FinancialReportVersion",
     "FinancialStatement",
     "FinancialStatementVersion",
     "LLMRequest",
@@ -77,6 +84,7 @@ __all__ = [
     "RecommendationHistory",
     "RecommendationPolicy",
     "RecommendationType",
+    "ReportStatus",
     "RetrievalQuery",
     "RetrievalResult",
     "RiskAssessment",

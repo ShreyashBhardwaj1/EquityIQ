@@ -14,6 +14,7 @@ from app.api.v1.document import router as document_router
 from app.api.v1.financial_intelligence import router as financial_intelligence_router
 from app.api.v1.financial_statement import router as financial_statement_router
 from app.api.v1.health import router as health_router
+from app.api.v1.reports import router as reports_router
 from app.api.v1.search import router as search_router
 from app.api.v1.workspace import router as workspace_router
 from app.core.config import settings
@@ -60,3 +61,4 @@ app.include_router(financial_statement_router)
 app.include_router(financial_intelligence_router)
 app.include_router(search_router)
 app.include_router(chat_router)
+app.include_router(reports_router)

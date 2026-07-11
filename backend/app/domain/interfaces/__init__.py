@@ -16,6 +16,7 @@ from app.domain.interfaces.repositories import (
     CompanyRepository,
     DocumentRepository,
     FinancialStatementRepository,
+    ReportRepository,
     UserRepository,
     WorkspaceRepository,
 )
@@ -29,6 +30,7 @@ __all__ = [
     "LLMProvider",
     "LLMResponse",
     "MetadataFilter",
+    "ReportRepository",
     "ScoredChunk",
     "Tool",
     "UserRepository",

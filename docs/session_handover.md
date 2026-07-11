@@ -1,35 +1,40 @@
-# Session Handover: Milestone 8 to Milestone 9
+# Session Handover: Milestone 9 to Milestone 10
 
 ## 1. Current Repository State
-*   **Version Tag**: `v1.0.0-financial-intelligence`
+*   **Version Tag**: `v1.1.0-report-generation-streaming`
 *   **Status**: Stable, verified, reformatted, and type-checked.
-*   **Test Suite**: 94 tests passing with 87% statement coverage.
+*   **Test Suite**: 133 tests passing.
 *   **Linter & Formatter**: Ruff checks passed cleanly, format check green.
-*   **MyPy**: Success (0 issues found across all new modules).
-*   **Import Linter**: Domain boundary kept (0 contracts broken).
+*   **MyPy**: Success — **0 errors** (fully clean for the first time in project history).
+*   **Import Linter**: Domain boundary kept (0 contracts broken). 194 files, 893 dependencies analyzed.
 
-## 2. Completed Work (Milestone 8)
-*   **Centralized Configuration**: Constructed centralized settings for the Ratio, Health, Risk, and Recommendation engines in `app/core/financial_config.py`.
-*   **Registry-Driven Ratio Engine**: Implemented dynamic registry evaluation of financial ratios in `app/domain/rules/ratio_registry.py`, complete with validation checks and qualitative status classifications (Excellent, Healthy, Watch, Weak, Critical).
-*   **Trend Engine**: Computes QoQ/YoY growth rates and classifies multi-period trends (accelerating, decelerating, recovery, decline, stable, volatile) in `app/domain/rules/trend_engine.py`.
-*   **Health Scoring Engine**: Scores ratios against boundaries and aggregates weighted overall and category-level health scores in `app/domain/rules/health_scoring.py`.
-*   **Distress Risk Engine**: Evaluates ratios against distress boundaries to yield severe/moderate/low risk flags in `app/domain/rules/risk_engine.py`.
-*   **Recommendation Engine**: Evaluates active policy thresholds against health, severe risks, and growth constraints in `app/domain/rules/recommendation_engine.py`.
-*   **Persistence & Repositories**: Defined ORM models and concrete repositories for Ratios, Health Scores, Risks, Recommendations, Policies, and Audit History, and executed migration.
-*   **Explainability Service**: Provides detailed signals (positive/negative), policies applied, rules triggered, and ratio/risk/trend factors in `app/application/services/explainability_service.py`.
-*   **Consolidated Dashboard Endpoint**: Aggregates all computed results, trends, top ratios, highest risks, final ratings, and structured confidence breakdowns in a single response under `GET /companies/{id}/dashboard`.
-*   **Workspace Security Isolation**: Enforces active workspace membership constraints across all calculated models and routes.
-*   **Hardened RAG Grounding**: Grounded LLM prompts in `app/prompts/answer_prompt.md` to prevent financial recomputation and enforce alignment with deterministic outputs.
+## 2. Completed Work (Milestone 9)
+*   **Domain Entities**: `FinancialReport`, `FinancialReportVersion`, `ReportStatus` added to `app/domain/entities/report.py`.
+*   **ReportRepository Protocol**: New interface in `app/domain/interfaces/repositories.py`.
+*   **ORM & Migration**: `FinancialReportORM`, `FinancialReportVersionORM`, and Alembic migration `f1a2b3c4d5e6`.
+*   **ReportContextAssembler**: Reads exclusively from Milestone 8 deterministic outputs — health scores, ratios, risks, recommendations. Never recalculates.
+*   **ReportPromptBuilder**: Loads 8 section Markdown templates from `app/prompts/reports/` and binds `ReportContext` into section-level prompts.
+*   **MarkdownValidator**: Structural validation — minimum length, unresolved placeholder detection, balanced code blocks.
+*   **ReportSectionValidator**: Post-generation anti-hallucination enforcement per section (rating string, score value, risk category presence).
+*   **ReportGenerationService**: Full 7-section pipeline orchestrator with graceful degradation on partial failure.
+*   **ReportSSEStreamingService**: Typed SSE event protocol (`queued`, `progress`, `token`, `section_started`, `section_completed`, `completed`, `failed`, `heartbeat`). Completed reports are replayed word-by-word from the DB.
+*   **ExportService**: Markdown, PDF (WeasyPrint), and DOCX (python-docx) export with standardized footer. Optional dependency graceful fallback to plaintext.
+*   **Celery Task**: `generate_report_task` in `app/workers/tasks.py` with full async pipeline.
+*   **REST API**: 5 endpoints — `POST /generate`, `GET /`, `GET /{id}`, `GET /{id}/stream`, `GET /{id}/download?fmt=markdown|pdf|docx`.
+*   **Engineering Refinement**: Fixed pre-existing MyPy `attr-defined` error in `recommendation_engine.py` — `RecommendationType` now imported from canonical source.
 
-## 3. Starting Point for Milestone 9
-Tomorrow's goal is **Milestone 9 — Report Generation & Streaming Engine**.
+## 3. Starting Point for Milestone 10
+Tomorrow's goal is **Milestone 10 — Next.js Frontend Application**.
 *   **Scope**:
-    1.  Build asynchronous markdown report drafting generators using the deterministic outputs from Milestone 8 as the source of truth.
-    2.  Develop a real-time streaming engine using Server-Sent Events (SSE) to stream generated reports.
-    3.  Implement PDF and DOCX document export capabilities.
-    4.  Expose API endpoints for managing reports, checking generation status, and initiating background tasks.
-    5.  Enforce workspace tenancy checks across all report actions.
+    1.  Build the complete Next.js 14 (App Router) frontend application.
+    2.  Implement authentication flows (login, register, token refresh).
+    3.  Build workspace and company management UI.
+    4.  Build financial dashboard with health score visualization.
+    5.  Build report viewer with live SSE token-streaming support.
+    6.  Implement document upload and parsing status tracking.
 
 ## 4. Key Assumptions
-*   **Mock Providers**: LLM provider API keys are mocked to `mock-testing-key` in tests, requiring proper system variables in staging and production.
-*   **Storage Provider**: Local file storage is utilized, preparing for future S3/Cloud Storage adapters.
+*   **Backend API**: All backend endpoints are stable and available at `http://localhost:8000`.
+*   **SSE Protocol**: Frontend must consume the structured SSE event protocol (`queued`, `progress`, `token`, `completed`, `failed`) defined by `ReportSSEStreamingService`.
+*   **Auth**: JWT access token is stored in `httpOnly` cookie or `Authorization` header. `X-Workspace-ID` header required for all workspace-scoped requests.
+*   **Optional Deps**: WeasyPrint and python-docx are not installed in the development environment; PDF/DOCX download endpoints will return plaintext fallback until installed.

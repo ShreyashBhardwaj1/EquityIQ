@@ -6,10 +6,10 @@ EquityIQ is a production-grade investment analysis and research platform built o
 
 ## Project Status
 
-- **Overall Progress**: **90% Complete** (8 / 10 Milestones completed)
+- **Overall Progress**: **95% Complete** (9 / 10 Milestones completed)
 - **Build Status**: **Passing** (Ruff, MyPy, Import-Linter green)
 - **Domain State**: **DOMAIN MODEL FROZEN** (Sealed contracts for downstream layers)
-- **Test Suite**: **94 tests passing** with 87% statement coverage across domain, DB lifecycles, repositories, Celery pipelines, RAG, and API routes.
+- **Test Suite**: **133 tests passing** with clean type checks across domain, DB lifecycles, repositories, Celery pipelines, RAG, report engine, and API routes.
 
 ---
 
@@ -25,7 +25,7 @@ EquityIQ is a production-grade investment analysis and research platform built o
 ✅ **Vector Storage & Hybrid Search**: Local Hugging Face SentenceTransformers embedding adapter, disk-persisted FAISS CPU vector index, database-assisted strict tenant pre-filtering, SQLite FTS5 full-text keyword retrieval engine, Min-Max score normalization, and linear combination hybrid rank fusion.  
 ✅ **LLM Integration (RAG)**: Complete multi-turn conversation memory, XML context assembly, token budgeting, prompt injection guards, Gemini 2.5 Pro/Flash adapter integration, response validation, deterministic grounding scoring, and telemetry tracking.  
 ✅ **Financial Intelligence & Recommendation**: Config-driven registry ratio definitions, multi-period trend categorization, health scoring, risk evaluation, policy-driven recommendations, and consolidated dashboard.  
-⏳ **Report Drafting & SSE Streaming**: Planned for Milestone 9.  
+✅ **Report Generation & SSE Streaming**: Async LLM-synthesized investment research reports grounded in Milestone 8 deterministic outputs, section-level anti-hallucination validators, Server-Sent Events token streaming, and Markdown/PDF/DOCX export.  
 
 ---
 
@@ -189,5 +189,5 @@ python -m pytest backend/ --cov=app --cov-report=term-missing
 - [x] **Milestone 6**: Vector Storage Pipeline & Hybrid Search Retrieval
 - [x] **Milestone 7**: LLM Integration, Prompt-Injection Filters, Q&A Agent
 - [x] **Milestone 8**: Financial Intelligence & Recommendation Engine
-- [ ] **Milestone 9**: Report Drafting & SSE Streaming Generation
+- [x] **Milestone 9**: Report Generation & SSE Streaming Engine
 - [ ] **Milestone 10**: Frontend Application UI Implementation

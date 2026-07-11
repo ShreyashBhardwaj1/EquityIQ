@@ -3,10 +3,8 @@ Policy-driven Recommendation Engine.
 Maps composite health scores, severe risks, and growth states against configurable policy rules.
 """
 
-from app.domain.entities.financial_intelligence import (
-    RecommendationPolicy,
-    RecommendationType,
-)
+from app.domain.entities.financial_intelligence import RecommendationPolicy
+from app.domain.entities.recommendation import RecommendationType
 
 
 def evaluate_recommendation(
