@@ -1,0 +1,230 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─────────────────────────────────────────────
+   Google Fonts — Inter
+   ───────────────────────────────────────────── */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
+
+/* ─────────────────────────────────────────────
+   Design Tokens — Light Theme
+   Layered blue-gray surfaces (no pure white BG)
+   ───────────────────────────────────────────── */
+@layer base {
+  :root {
+    --background: 220 20% 96%;
+    --foreground: 222 47% 11%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    --primary: 221 83% 53%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 210 40% 93%;
+    --secondary-foreground: 222 47% 11%;
+
+    --muted: 210 40% 93%;
+    --muted-foreground: 215 16% 47%;
+
+    --accent: 210 40% 93%;
+    --accent-foreground: 222 47% 11%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214 32% 87%;
+    --input: 214 32% 87%;
+    --ring: 221 83% 53%;
+    --radius: 0.6rem;
+
+    /* EquityIQ surface tokens */
+    --surface-1: 220 20% 96%;   /* page background */
+    --surface-2: 220 20% 93%;   /* subtle raised */
+    --surface-3: 220 20% 90%;   /* dividers / pressed */
+
+    /* Auth brand panel */
+    --auth-panel: 224 39% 13%;
+    --auth-panel-text: 210 40% 90%;
+
+    /* Financial motif opacity */
+    --motif-opacity: 0.07;
+
+    --font-inter: "Inter", system-ui, -apple-system, sans-serif;
+  }
+
+  /* ─────────────────────────────────────────────
+     Design Tokens — Dark Theme
+     Direct visual counterpart of light theme
+     ───────────────────────────────────────────── */
+  .dark {
+    --background: 222 47% 7%;
+    --foreground: 210 40% 98%;
+
+    --card: 222 47% 11%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222 47% 11%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 217 91% 62%;
+    --primary-foreground: 222 47% 7%;
+
+    --secondary: 217 33% 17%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 217 33% 17%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217 33% 18%;
+    --input: 217 33% 18%;
+    --ring: 217 91% 62%;
+
+    --surface-1: 222 47% 7%;
+    --surface-2: 222 47% 10%;
+    --surface-3: 222 47% 13%;
+
+    --auth-panel: 224 55% 5%;
+    --auth-panel-text: 210 40% 90%;
+
+    --motif-opacity: 0.09;
+  }
+}
+
+/* ─────────────────────────────────────────────
+   Base Reset
+   ───────────────────────────────────────────── */
+@layer base {
+  * {
+    @apply border-border;
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-inter);
+    font-feature-settings: "rlig" 1, "calt" 1;
+    transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+  }
+
+  /* Focus ring: accessible, brand-colored */
+  :focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+
+  /* Selection color */
+  ::selection {
+    background-color: hsl(var(--primary) / 0.2);
+    color: hsl(var(--foreground));
+  }
+}
+
+/* ─────────────────────────────────────────────
+   Financial Background Motif
+   Reusable CSS-only pattern: subtle chart grid
+   Apply `.financial-bg` to any section/panel
+   ───────────────────────────────────────────── */
+@layer utilities {
+  .financial-bg {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .financial-bg::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: var(--motif-opacity);
+    z-index: 0;
+
+    /* Layered SVG motif: grid + chart curve */
+    background-image:
+      /* Subtle dot grid */
+      radial-gradient(
+        circle,
+        hsl(217 91% 75%) 1px,
+        transparent 1px
+      ),
+      /* Horizontal rule lines */
+      linear-gradient(
+        to bottom,
+        transparent 49px,
+        hsl(217 91% 75% / 0.4) 49px,
+        hsl(217 91% 75% / 0.4) 50px,
+        transparent 50px
+      ),
+      /* Vertical rule lines */
+      linear-gradient(
+        to right,
+        transparent 49px,
+        hsl(217 91% 75% / 0.3) 49px,
+        hsl(217 91% 75% / 0.3) 50px,
+        transparent 50px
+      );
+
+    background-size:
+      50px 50px,
+      50px 50px,
+      50px 50px;
+  }
+
+  /* Rising chart overlay (purely decorative) */
+  .financial-bg::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 400' preserveAspectRatio='xMidYMid slice'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%233b82f6' stop-opacity='0.15'/%3E%3Cstop offset='1' stop-color='%233b82f6' stop-opacity='0'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M0 350 Q100 300 200 250 Q300 200 400 160 Q500 120 600 80 Q700 40 800 20 L800 400 L0 400Z' fill='url(%23g)'/%3E%3Cpath d='M0 350 Q100 300 200 250 Q300 200 400 160 Q500 120 600 80 Q700 40 800 20' fill='none' stroke='%233b82f6' stroke-width='2' stroke-opacity='0.3'/%3E%3Ccircle cx='200' cy='250' r='4' fill='%233b82f6' fill-opacity='0.4'/%3E%3Ccircle cx='400' cy='160' r='4' fill='%233b82f6' fill-opacity='0.4'/%3E%3Ccircle cx='600' cy='80' r='4' fill='%233b82f6' fill-opacity='0.4'/%3E%3C/svg%3E");
+    background-size: cover;
+    background-position: center bottom;
+    opacity: calc(var(--motif-opacity) * 1.5);
+  }
+
+  /* Ensure children sit above the motif */
+  .financial-bg > * {
+    position: relative;
+    z-index: 1;
+  }
+}
+
+/* ─────────────────────────────────────────────
+   Utility: Glass card surface
+   ───────────────────────────────────────────── */
+@layer utilities {
+  .glass-card {
+    @apply bg-card/95 backdrop-blur-md border border-border/60 shadow-card;
+  }
+
+  .glass-card-hover {
+    @apply transition-shadow duration-200 hover:shadow-card-hover;
+  }
+
+  /* Input focus glow */
+  .input-glow:focus-within {
+    box-shadow: 0 0 0 2px hsl(var(--primary) / 0.15);
+  }
+
+  /* Password strength bar */
+  .strength-bar {
+    @apply h-1 rounded-full transition-all duration-300;
+  }
+}

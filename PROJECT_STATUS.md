@@ -27,7 +27,7 @@
 *   **Milestone 9**: Report Generation & Streaming Engine (Async LLM-synthesized reports grounded in Milestone 8 deterministic outputs, ReportContextAssembler, section-level anti-hallucination validators, SSE token streaming, Markdown/PDF/DOCX export, Celery async task, 5 REST endpoints)
 
 ### Upcoming Milestones
-*   **Milestone 10**: Next.js UI Frontend Implementation
+*   **Milestone 10**: Next.js UI Frontend Implementation (Phase 1: Authentication Complete)
 
 ---
 
@@ -47,5 +47,5 @@
 
 ## 4. Next Development Session Goal
 
-*   **Target Milestone**: **Milestone 10 — Next.js Frontend Application**
-*   **Objective**: Build the complete Next.js (App Router) frontend UI — dashboard, report viewer with SSE token streaming, company management, document upload, and authentication flows.
+*   **Target Milestone**: **Milestone 10 — Next.js Frontend Application (Phase 2)**
+*   **Objective**: Build the Application Shell (Sidebar, Topbar, Routing, and core layout wrapping).

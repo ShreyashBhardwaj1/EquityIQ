@@ -4,6 +4,19 @@ All notable changes to the EquityIQ project will be documented in this file.
 
 ---
 
+## [Unreleased]
+
+### Added (Milestone 10 Phase 1: Authentication Frontend)
+- **Frontend App Architecture**: Initialized Next.js 14 App Router workspace with Tailwind CSS, Shadcn UI, and TypeScript.
+- **Design System & Theme**: Created centralized design tokens (colors, radii, spacing) in `globals.css` with a smooth 200ms theme transition for light and dark modes. Implemented the layered blue-gray surface aesthetic.
+- **Financial Motif**: Engineered a purely CSS-based financial background pattern (`.financial-bg`) using SVG data URIs, gradients, and theme-configurable opacity.
+- **Authentication Feature Layer**: Defined strict Zod schemas for auth forms, API fetch wrappers, and TanStack React Query custom hooks (`useLogin`, `useRegister`, `useLogout`, `useForgotPassword`).
+- **Reusable Authentication Components**: Developed `AuthLayout`, `AuthBrandPanel`, `AuthCard`, `AuthHeader`, `AuthFooter`, `PasswordInput` with a dynamic strength indicator, and `OAuthButtons`.
+- **Authentication Pages**: Implemented fully responsive, accessible, and animated pages for `/login`, `/register`, and `/forgot-password` utilizing `react-hook-form` and Framer Motion.
+- **Product Branding**: Centralized text tokens into `lib/branding.ts` and created a reusable `Logo` component.
+
+---
+
 ## [v1.1.0-report-generation-streaming] - 2026-07-11
 
 This release introduces the complete Report Generation & Streaming Engine (Milestone 9). The engine produces multi-section, LLM-synthesized investment research reports grounded exclusively in the deterministic outputs of the Milestone 8 Financial Intelligence pipeline. The LLM acts strictly as a narrative synthesizer — it never recalculates or invents financial metrics.
