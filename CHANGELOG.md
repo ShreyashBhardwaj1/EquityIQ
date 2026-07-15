@@ -6,6 +6,21 @@ All notable changes to the EquityIQ project will be documented in this file.
 
 ## [Unreleased]
 
+### Added (Milestone 10 Phase 4: Documents & Reports Implementation)
+- **Feature-first Architecture**: Scoped UI, hooks, and API fetchers under `frontend/features/documents/` and `frontend/features/reports/`.
+- **Documents UI**: Built `DocumentsTable` and `DocumentUploadModal` with FormData file upload capabilities and status indicators.
+- **Reports UI**: Developed `ReportViewer` leveraging `react-markdown` with `remark-gfm` and `@tailwindcss/typography` to progressively stream financial documents.
+- **SSE Streaming Integration**: Implemented a standalone `use-report-stream.ts` custom hook utilizing standard `fetch` and `getReader()` to parse Server-Sent Events dynamically, natively injecting authorization headers.
+- **Global & Scoped Routing**: Created global `/documents` and `/reports` index pages alongside scoped `/companies/[id]/documents` and `/companies/[id]/reports/[reportId]` dynamic views.
+
+### Added (Milestone 10 Phase 5: RAG Chat & Final Modules)
+- **Chat Interface**: Built `frontend/features/chat` establishing a ChatGPT/Claude-style UI with `ChatArea`, `MessageBubble`, and `PromptComposer`.
+- **RAG Execution**: Wired chat hook directly to the stateless backend completion API, enabling dynamic financial Q&A across workspaces.
+- **Citation Tooltips**: Developed interactive `CitationCard` popovers mapping strict text grounding limits to specific PDF source blocks.
+- **Workspace Management**: Replaced mock selectors with live `WorkspaceSwitcher` components hooked into `features/workspaces/hooks/use-workspaces.ts`, allowing real-time context bridging.
+- **Settings System**: Deployed an extensive `app/(dashboard)/settings` routing grid containing Profile, Appearance, Workspace, Team, API Connections, and Storage views adhering rigorously to standard Glassmorphism definitions.
+- **Final Dashboard Integrity**: Linked all static "Quick Actions" endpoints into their respective real URL handlers, maintaining strict visual unity.
+
 ### Added (Milestone 10 Phase 1: Authentication Frontend)
 - **Frontend App Architecture**: Initialized Next.js 14 App Router workspace with Tailwind CSS, Shadcn UI, and TypeScript.
 - **Design System & Theme**: Created centralized design tokens (colors, radii, spacing) in `globals.css` with a smooth 200ms theme transition for light and dark modes. Implemented the layered blue-gray surface aesthetic.

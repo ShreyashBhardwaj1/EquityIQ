@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Link from "next/link";
 import { LAYOUT_CONFIG } from "@/config/layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -212,17 +213,30 @@ export default function DashboardPage() {
         <motion.div variants={item}>
           <h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[
-              { icon: Plus, label: "New Analysis" },
-              { icon: FileText, label: "Upload Document" },
-              { icon: Activity, label: "Add to Watchlist" },
-              { icon: BrainCircuit, label: "Ask AI Assistant" },
-            ].map((action, i) => (
-              <Button key={i} variant="outline" className="h-24 flex flex-col items-center justify-center gap-2 bg-background/40 hover:bg-background/80 transition-all">
-                <action.icon className="w-6 h-6 text-primary" />
-                <span className="text-xs font-medium">{action.label}</span>
-              </Button>
-            ))}
+            <Button asChild variant="outline" className="h-24 flex flex-col items-center justify-center gap-2 bg-background/40 hover:bg-background/80 transition-all cursor-pointer">
+              <Link href="/companies">
+                <Plus className="w-6 h-6 text-primary" />
+                <span className="text-xs font-medium">New Analysis</span>
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="h-24 flex flex-col items-center justify-center gap-2 bg-background/40 hover:bg-background/80 transition-all cursor-pointer">
+              <Link href="/documents">
+                <FileText className="w-6 h-6 text-primary" />
+                <span className="text-xs font-medium">Upload Document</span>
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="h-24 flex flex-col items-center justify-center gap-2 bg-background/40 hover:bg-background/80 transition-all cursor-pointer">
+              <Link href="/companies">
+                <Activity className="w-6 h-6 text-primary" />
+                <span className="text-xs font-medium">Company Watchlist</span>
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="h-24 flex flex-col items-center justify-center gap-2 bg-background/40 hover:bg-background/80 transition-all cursor-pointer">
+              <Link href="/chat">
+                <BrainCircuit className="w-6 h-6 text-primary" />
+                <span className="text-xs font-medium">Ask AI Assistant</span>
+              </Link>
+            </Button>
           </div>
         </motion.div>
       </motion.div>

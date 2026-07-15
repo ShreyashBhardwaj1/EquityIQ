@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Briefcase, Check, ChevronsUpDown } from "lucide-react";
+import { Briefcase, Check, ChevronsUpDown, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -11,15 +11,44 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
-// Mock data until real API is wired
-const workspaces = [
-  { id: "1", name: "Personal Workspace" },
-  { id: "2", name: "Acme Corp Analysis" },
-];
+import { useWorkspacesList, useSwitchWorkspace } from "@/features/workspaces/hooks/use-workspaces";
+import { Workspace } from "@/features/workspaces/types";
 
 export function WorkspaceSelector() {
-  const [activeWorkspace, setActiveWorkspace] = useState(workspaces[0]);
+  const { data: workspaces, isLoading } = useWorkspacesList();
+  const switchMutation = useSwitchWorkspace();
+
+  const [activeWorkspaceId, setActiveWorkspaceId] = useState<string>("");
+
+  const displayId = activeWorkspaceId || workspaces?.[0]?.id;
+  const activeWorkspace = workspaces?.find(w => w.id === displayId);
+
+  const handleSwitch = async (workspace: Workspace) => {
+    setActiveWorkspaceId(workspace.id);
+    await switchMutation.mutateAsync(workspace.id);
+  };
+
+  if (isLoading) {
+    return (
+      <Button variant="ghost" size="sm" className="h-8 w-full justify-between px-2 text-sm font-normal text-muted-foreground">
+        <div className="flex items-center gap-2 truncate">
+          <Loader2 className="h-4 w-4 shrink-0 animate-spin" />
+          <span>Loading...</span>
+        </div>
+      </Button>
+    );
+  }
+
+  if (!workspaces || workspaces.length === 0) {
+    return (
+      <Button variant="ghost" size="sm" className="h-8 w-full justify-between px-2 text-sm font-normal text-muted-foreground">
+        <div className="flex items-center gap-2 truncate">
+          <Briefcase className="h-4 w-4 shrink-0" />
+          <span>No Workspaces</span>
+        </div>
+      </Button>
+    );
+  }
 
   return (
     <DropdownMenu>
@@ -31,7 +60,7 @@ export function WorkspaceSelector() {
         >
           <div className="flex items-center gap-2 truncate">
             <Briefcase className="h-4 w-4 shrink-0" />
-            <span className="truncate">{activeWorkspace.name}</span>
+            <span className="truncate">{activeWorkspace?.name || "Select Workspace"}</span>
           </div>
           <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
         </Button>
@@ -44,11 +73,11 @@ export function WorkspaceSelector() {
         {workspaces.map((workspace) => (
           <DropdownMenuItem
             key={workspace.id}
-            onClick={() => setActiveWorkspace(workspace)}
+            onClick={() => handleSwitch(workspace)}
             className="flex items-center justify-between cursor-pointer"
           >
             <span className="truncate">{workspace.name}</span>
-            {activeWorkspace.id === workspace.id && (
+            {displayId === workspace.id && (
               <Check className="h-4 w-4 text-primary shrink-0" />
             )}
           </DropdownMenuItem>

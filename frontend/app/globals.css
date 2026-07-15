@@ -51,8 +51,10 @@
     --auth-panel: 224 39% 13%;
     --auth-panel-text: 210 40% 90%;
 
-    /* Layer 1 - Atmospheric background opacity */
-    --atmosphere-opacity: 0.03;
+    /* Layer 1 - Atmospheric background balance (Light Theme Parity) */
+    --atmosphere-grid-opacity: 0.06;
+    --atmosphere-curve-opacity: 0.12;
+    --atmosphere-radial-opacity: 0.25;
 
     --font-inter: "Inter", system-ui, -apple-system, sans-serif;
   }
@@ -97,7 +99,9 @@
     --auth-panel: 224 55% 5%;
     --auth-panel-text: 210 40% 90%;
 
-    --atmosphere-opacity: 0.04;
+    --atmosphere-grid-opacity: 0.04;
+    --atmosphere-curve-opacity: 0.06;
+    --atmosphere-radial-opacity: 0.10;
   }
 }
 
@@ -159,7 +163,7 @@
     inset: 0;
     pointer-events: none;
     z-index: 0;
-    opacity: var(--atmosphere-opacity);
+    opacity: var(--atmosphere-grid-opacity);
     background-image:
       /* Noise texture */
       url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.8'/%3E%3C/svg%3E"),
@@ -177,15 +181,15 @@
     inset: 0;
     pointer-events: none;
     z-index: 0;
-    opacity: calc(var(--atmosphere-opacity) * 1.5);
+    opacity: var(--atmosphere-curve-opacity);
     background-image:
       /* Valuation Curves & Nodes */
       url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1000 200' preserveAspectRatio='none'%3E%3Cpath d='M0,100 C250,200 250,0 500,100 C750,200 750,0 1000,100' fill='none' stroke='%233b82f6' stroke-width='2' stroke-opacity='0.4'/%3E%3Cpath d='M0,150 C300,50 400,250 700,100 C850,25 900,150 1000,150' fill='none' stroke='%233b82f6' stroke-width='1.5' stroke-opacity='0.2'/%3E%3Ccircle cx='250' cy='150' r='3' fill='%233b82f6' opacity='0.8'/%3E%3Ccircle cx='500' cy='100' r='4' fill='%233b82f6' opacity='0.9'/%3E%3Ccircle cx='750' cy='100' r='3' fill='%233b82f6' opacity='0.8'/%3E%3Ccircle cx='900' cy='150' r='2.5' fill='%233b82f6' opacity='0.7'/%3E%3C/svg%3E"),
       /* Faint Candlesticks */
       url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='150'%3E%3Cline x1='30' y1='20' x2='30' y2='130' stroke='%233b82f6' stroke-width='1.5' opacity='0.15'/%3E%3Crect x='22' y='50' width='16' height='40' fill='%233b82f6' opacity='0.2' rx='2'/%3E%3C/svg%3E"),
       /* Radial Lighting */
-      radial-gradient(circle at 15% 20%, hsl(var(--primary) / 0.15) 0%, transparent 40%),
-      radial-gradient(circle at 85% 80%, hsl(var(--primary) / 0.1) 0%, transparent 50%);
+      radial-gradient(circle at 15% 20%, hsl(var(--primary) / var(--atmosphere-radial-opacity)) 0%, transparent 40%),
+      radial-gradient(circle at 85% 80%, hsl(var(--primary) / calc(var(--atmosphere-radial-opacity) * 0.7)) 0%, transparent 50%);
     background-size: 200% 100%, 60px 150px, 100% 100%, 100% 100%;
     animation: atmospheric-flow 60s linear infinite;
   }
