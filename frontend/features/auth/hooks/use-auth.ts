@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -6,6 +7,7 @@ import {
   register,
   logout,
   forgotPassword,
+  getCurrentUser,
 } from "@/features/auth/api/auth-api";
 import type {
   LoginFormValues,
@@ -90,7 +92,38 @@ export function useForgotPassword() {
 }
 
 export function useIsAuthenticated() {
-  // Simple check for phase 1. Phase 2 will involve proper auth context.
   if (typeof window === "undefined") return false;
   return !!getAccessToken();
+}
+
+export function useAuth() {
+  const logoutMutation = useLogout();
+  const [user, setUser] = useState<{email: string, role: string} | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const token = getAccessToken();
+    if (token) {
+      getCurrentUser()
+        .then((userData) => {
+          setUser(userData);
+        })
+        .catch((error) => {
+          console.error("Failed to fetch user", error);
+          setUser(null);
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
+    } else {
+      setUser(null);
+      setIsLoading(false);
+    }
+  }, []);
+
+  return {
+    user,
+    isLoading,
+    logoutMutation,
+  };
 }

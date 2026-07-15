@@ -51,8 +51,8 @@
     --auth-panel: 224 39% 13%;
     --auth-panel-text: 210 40% 90%;
 
-    /* Financial motif opacity */
-    --motif-opacity: 0.07;
+    /* Layer 1 - Atmospheric background opacity */
+    --atmosphere-opacity: 0.03;
 
     --font-inter: "Inter", system-ui, -apple-system, sans-serif;
   }
@@ -97,7 +97,7 @@
     --auth-panel: 224 55% 5%;
     --auth-panel-text: 210 40% 90%;
 
-    --motif-opacity: 0.09;
+    --atmosphere-opacity: 0.04;
   }
 }
 
@@ -137,85 +137,92 @@
 }
 
 /* ─────────────────────────────────────────────
-   Financial Background Motif
-   Reusable CSS-only pattern: subtle chart grid
-   Apply `.financial-bg` to any section/panel
+   Layer 1: Atmospheric Background (Global)
+   Extremely subtle nodes, grids, and radial lights
    ───────────────────────────────────────────── */
+@keyframes atmospheric-flow {
+  0% { background-position: 0% 50%, 0 0, 0 0, 0 0; }
+  100% { background-position: 100% 50%, 0 150px, 0 0, 0 0; }
+}
+
 @layer utilities {
-  .financial-bg {
+  .atmospheric-bg {
     position: relative;
     overflow: hidden;
+    background-color: hsl(var(--surface-1));
   }
 
-  .financial-bg::before {
+  /* Grid and Noise */
+  .atmospheric-bg::before {
     content: "";
     position: absolute;
     inset: 0;
     pointer-events: none;
-    opacity: var(--motif-opacity);
     z-index: 0;
-
-    /* Layered SVG motif: grid + chart curve */
+    opacity: var(--atmosphere-opacity);
     background-image:
-      /* Subtle dot grid */
-      radial-gradient(
-        circle,
-        hsl(217 91% 75%) 1px,
-        transparent 1px
-      ),
-      /* Horizontal rule lines */
-      linear-gradient(
-        to bottom,
-        transparent 49px,
-        hsl(217 91% 75% / 0.4) 49px,
-        hsl(217 91% 75% / 0.4) 50px,
-        transparent 50px
-      ),
-      /* Vertical rule lines */
-      linear-gradient(
-        to right,
-        transparent 49px,
-        hsl(217 91% 75% / 0.3) 49px,
-        hsl(217 91% 75% / 0.3) 50px,
-        transparent 50px
-      );
-
-    background-size:
-      50px 50px,
-      50px 50px,
-      50px 50px;
+      /* Noise texture */
+      url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.8'/%3E%3C/svg%3E"),
+      /* Blueprint grid */
+      linear-gradient(to right, hsl(var(--primary)) 1px, transparent 1px),
+      linear-gradient(to bottom, hsl(var(--primary)) 1px, transparent 1px);
+    background-size: 100px 100px, 40px 40px, 40px 40px;
+    background-blend-mode: overlay, normal, normal;
   }
 
-  /* Rising chart overlay (purely decorative) */
-  .financial-bg::after {
+  /* Valuation curves, candlesticks, and radial lighting */
+  .atmospheric-bg::after {
     content: "";
     position: absolute;
     inset: 0;
     pointer-events: none;
     z-index: 0;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 400' preserveAspectRatio='xMidYMid slice'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%233b82f6' stop-opacity='0.15'/%3E%3Cstop offset='1' stop-color='%233b82f6' stop-opacity='0'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M0 350 Q100 300 200 250 Q300 200 400 160 Q500 120 600 80 Q700 40 800 20 L800 400 L0 400Z' fill='url(%23g)'/%3E%3Cpath d='M0 350 Q100 300 200 250 Q300 200 400 160 Q500 120 600 80 Q700 40 800 20' fill='none' stroke='%233b82f6' stroke-width='2' stroke-opacity='0.3'/%3E%3Ccircle cx='200' cy='250' r='4' fill='%233b82f6' fill-opacity='0.4'/%3E%3Ccircle cx='400' cy='160' r='4' fill='%233b82f6' fill-opacity='0.4'/%3E%3Ccircle cx='600' cy='80' r='4' fill='%233b82f6' fill-opacity='0.4'/%3E%3C/svg%3E");
-    background-size: cover;
-    background-position: center bottom;
-    opacity: calc(var(--motif-opacity) * 1.5);
+    opacity: calc(var(--atmosphere-opacity) * 1.5);
+    background-image:
+      /* Valuation Curves & Nodes */
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1000 200' preserveAspectRatio='none'%3E%3Cpath d='M0,100 C250,200 250,0 500,100 C750,200 750,0 1000,100' fill='none' stroke='%233b82f6' stroke-width='2' stroke-opacity='0.4'/%3E%3Cpath d='M0,150 C300,50 400,250 700,100 C850,25 900,150 1000,150' fill='none' stroke='%233b82f6' stroke-width='1.5' stroke-opacity='0.2'/%3E%3Ccircle cx='250' cy='150' r='3' fill='%233b82f6' opacity='0.8'/%3E%3Ccircle cx='500' cy='100' r='4' fill='%233b82f6' opacity='0.9'/%3E%3Ccircle cx='750' cy='100' r='3' fill='%233b82f6' opacity='0.8'/%3E%3Ccircle cx='900' cy='150' r='2.5' fill='%233b82f6' opacity='0.7'/%3E%3C/svg%3E"),
+      /* Faint Candlesticks */
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='150'%3E%3Cline x1='30' y1='20' x2='30' y2='130' stroke='%233b82f6' stroke-width='1.5' opacity='0.15'/%3E%3Crect x='22' y='50' width='16' height='40' fill='%233b82f6' opacity='0.2' rx='2'/%3E%3C/svg%3E"),
+      /* Radial Lighting */
+      radial-gradient(circle at 15% 20%, hsl(var(--primary) / 0.15) 0%, transparent 40%),
+      radial-gradient(circle at 85% 80%, hsl(var(--primary) / 0.1) 0%, transparent 50%);
+    background-size: 200% 100%, 60px 150px, 100% 100%, 100% 100%;
+    animation: atmospheric-flow 60s linear infinite;
   }
 
-  /* Ensure children sit above the motif */
-  .financial-bg > * {
+  @media (prefers-reduced-motion: reduce) {
+    .atmospheric-bg::after {
+      animation: none;
+      background-position: 50% 50%, 0 0, 0 0, 0 0;
+    }
+  }
+
+  .atmospheric-bg > * {
     position: relative;
     z-index: 1;
   }
 }
 
 /* ─────────────────────────────────────────────
-   Utility: Glass card surface
+   Layer 2: Glass Surfaces
    ───────────────────────────────────────────── */
 @layer utilities {
   .glass-card {
-    @apply bg-card/95 backdrop-blur-md border border-border/60 shadow-card;
+    @apply bg-background/70 dark:bg-slate-900/60 backdrop-blur-xl border border-border/40 shadow-sm transition-all duration-300 relative overflow-hidden;
+  }
+
+  /* Inner highlight for glass effect */
+  .glass-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(135deg, hsl(var(--primary) / 0.1) 0%, transparent 30%);
+    opacity: 0.5;
   }
 
   .glass-card-hover {
-    @apply transition-shadow duration-200 hover:shadow-card-hover;
+    @apply hover:shadow-md hover:border-primary/20 hover:-translate-y-0.5;
   }
 
   /* Input focus glow */

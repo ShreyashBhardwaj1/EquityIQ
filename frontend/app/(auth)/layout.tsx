@@ -4,7 +4,7 @@ import { ThemeToggle } from "@/components/ui/ThemeToggle";
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="flex h-screen bg-surface-1 overflow-hidden">
+    <div className="flex h-screen bg-surface-1 atmospheric-bg overflow-hidden">
       {/* Left Panel: Decorative brand panel (hidden on mobile) */}
       <AuthBrandPanel />
 

@@ -1,12 +1,13 @@
-import { apiRequest, setTokens, clearTokens } from "@/lib/api-client";
+import { apiRequest, setTokens, clearTokens, getAuthHeaders } from "@/lib/api-client";
 import type {
   AuthResponse,
   RefreshResponse,
   LoginFormValues,
   RegisterFormValues,
+  UserResponse,
 } from "@/types/auth.types";
 
-const AUTH_PREFIX = "/api/v1/auth";
+const AUTH_PREFIX = "/auth";
 
 /**
  * Authenticate with email + password.
@@ -85,4 +86,13 @@ export async function forgotPassword(email: string): Promise<void> {
   // Placeholder: replace with real endpoint when backend adds /auth/forgot-password
   await new Promise((resolve) => setTimeout(resolve, 800));
   console.info("[auth-api] forgotPassword called for:", email);
+}
+
+/**
+ * Fetch the currently authenticated user.
+ */
+export async function getCurrentUser(): Promise<UserResponse> {
+  return await apiRequest<UserResponse>(`${AUTH_PREFIX}/me`, {
+    headers: getAuthHeaders(),
+  });
 }

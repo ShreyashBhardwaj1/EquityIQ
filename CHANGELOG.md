@@ -15,6 +15,15 @@ All notable changes to the EquityIQ project will be documented in this file.
 - **Authentication Pages**: Implemented fully responsive, accessible, and animated pages for `/login`, `/register`, and `/forgot-password` utilizing `react-hook-form` and Framer Motion.
 - **Product Branding**: Centralized text tokens into `lib/branding.ts` and created a reusable `Logo` component.
 
+### Added (Milestone 10 Phase 2: Application Shell & UI Foundation)
+- **Application Shell**: Built `DashboardLayout` wrapping authenticated routes, featuring `Sidebar`, `Topbar`, and `AuthGuard`.
+- **Global Design System Upgrade**: Refined `globals.css` introducing a unified 3-layer architectural design system (Atmosphere, Surfaces, Content).
+- **Atmospheric Background Layer**: Designed a purely CSS/SVG-driven, low-opacity (3%) background (`.atmospheric-bg`) featuring valuation sine curves, faint candlestick silhouettes, nodes, and radial lighting. Integrated extremely slow CSS panning (`@keyframes atmospheric-flow`) with `prefers-reduced-motion` compliance.
+- **Glassmorphism Surfaces**: Upgraded base `Card` primitives to inherently use translucent backgrounds (`bg-background/70`), heavy backdrop blurs, and soft inner-highlight reflections.
+- **Topbar & Global Search**: Designed a premium, Mac Spotlight-style ⌘K search input and improved interactive header spacing.
+- **Sidebar Navigation**: Implemented centralized `config/navigation.ts`, and built a dynamic Framer Motion sliding active state indicator. Populated lower mock sections (Recent Companies, Pinned Items) for a lived-in workspace feel.
+- **Dashboard Mock Narrative**: Built a rich, responsive dashboard populated with realistic financial modules (Greeting, AI Summary, Watchlist, Portfolio Overview, Quick Actions) simulating the final application state.
+
 ---
 
 ## [v1.1.0-report-generation-streaming] - 2026-07-11
