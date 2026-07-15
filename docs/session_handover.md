@@ -1,28 +1,26 @@
-# Session Handover: Milestone 10 Phase 2 to Phase 3
+# Session Handover: Milestone 10 Phase 3 to Phase 4
 
 ## 1. Current Repository State
 *   **Version Tag**: `v1.1.0-report-generation-streaming` (Unreleased Frontend Progress)
-*   **Status**: Frontend Application Shell (Phase 2) and Design Language Polish Pass completed, verified, and ready to be pushed to `main`.
-*   **Linter & Formatter**: Frontend ESLint passed cleanly. Backend tests/myPy remain intact.
+*   **Status**: Frontend Companies Module (Phase 3) completed and verified.
+*   **Linter & Formatter**: Frontend ESLint passed cleanly.
 *   **TypeScript**: Passed cleanly (`tsc --noEmit`).
 *   **Build**: Next.js production build (`npm run build`) succeeded with 0 hydration errors.
 
-## 2. Completed Work (Milestone 10 Phase 2: Application Shell)
-*   **Application Shell**: Established `DashboardLayout`, `Sidebar`, `Topbar`, and `AuthGuard` ensuring authenticated encapsulation.
-*   **Global Design System Upgrade (Frozen)**: Unified a 3-layer architecture (Atmosphere, Surfaces, Content).
-*   **Atmospheric Background**: Integrated an ultra-premium, CSS/SVG-driven, low-opacity (3%) global background (`.atmospheric-bg`) featuring valuation sine curves, faint candlesticks, blueprint grids, noise, and radial lighting. Supports `prefers-reduced-motion` compliance.
-*   **Glassmorphism Surfaces**: Upgraded `<Card>` components globally to utilize backdrop blurs (`bg-background/70 backdrop-blur-xl`), inner highlight reflections, and responsive hover elevations.
-*   **Sidebar & Navigation**: Populated Mock Lower Sections (Recent Companies, Pinned Items) and implemented `framer-motion` sliding spring animations for active states.
-*   **Search & Topbar**: Styled a Mac Spotlight-like ⌘K translucent search pill.
-*   **Dashboard Narrative**: Built an intelligent layout populated with real financial mock modules simulating Greeting, AI Daily Briefings, Watchlist, Portfolio Overview, and Quick Actions.
+## 2. Completed Work (Milestone 10 Phase 3: Companies Module)
+*   **Feature-first Architecture**: Scoped UI, hooks, API fetchers, and types strictly under `frontend/features/companies/`.
+*   **API Client Layer**: Established standard `companiesApi` covering list, search, get, create, delete operations interfacing securely with `apiRequest`.
+*   **React Query Hooks**: Implemented standard query lifecycle hooks (`useCompaniesList`, `useCompaniesSearch`, `useCreateCompany`, `useDeleteCompany`).
+*   **Companies Table UI**: Installed required shadcn primitives (`table`, `skeleton`). Built `CompaniesTable` wrapping loading skeletons, error boundaries, and empty states.
+*   **Search & Filtering**: Implemented a responsive page header featuring debounced client-side search mapping to the API, alongside placeholders for advanced filters.
 
-## 3. Starting Point for Milestone 10 Phase 3
-The next phase is **Milestone 10 — Phase 3: Product Modules Implementation**.
+## 3. Starting Point for Milestone 10 Phase 4
+The next phase is **Milestone 10 — Phase 4: Documents and Reports Modules**.
 *   **Scope**:
-    1.  Implement remaining functional UI screens utilizing the frozen design system (Companies, Documents, Reports, Financials).
-    2.  Maintain strict modular architecture, keeping business logic separated via TanStack query hooks.
-    3.  Reuse existing UI primitives (do not duplicate styles or create ad-hoc design systems).
+    1.  Implement the Document upload and intelligence parsing screens.
+    2.  Implement the Report generation dashboard and Server-Sent Events (SSE) streaming viewer.
+    3.  Continue utilizing the frozen Phase 2 design system and existing shadcn primitives.
 
 ## 4. Key Assumptions
-*   **Backend API**: All backend endpoints are stable and available at `http://localhost:8000`.
-*   **UI Foundation is Frozen**: From this point onward, development effort must strictly focus on building functional product capabilities using the established visual standard.
+*   **Backend API**: Backend is running locally on port 8000.
+*   **Design System**: Visual identity is strictly frozen. Development remains focused solely on business capabilities and API integration.

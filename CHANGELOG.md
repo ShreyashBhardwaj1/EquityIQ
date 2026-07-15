@@ -24,6 +24,13 @@ All notable changes to the EquityIQ project will be documented in this file.
 - **Sidebar Navigation**: Implemented centralized `config/navigation.ts`, and built a dynamic Framer Motion sliding active state indicator. Populated lower mock sections (Recent Companies, Pinned Items) for a lived-in workspace feel.
 - **Dashboard Mock Narrative**: Built a rich, responsive dashboard populated with realistic financial modules (Greeting, AI Summary, Watchlist, Portfolio Overview, Quick Actions) simulating the final application state.
 
+### Added (Milestone 10 Phase 3: Companies Module)
+- **Feature-first Architecture**: Scoped UI, hooks, API fetchers, and types under `frontend/features/companies/`.
+- **API Client Layer**: Established standard `companiesApi` covering list, search, get, create, delete, interfacing with `apiRequest` and injecting JWT headers.
+- **React Query Hooks**: Implemented `useCompaniesList`, `useCompaniesSearch`, `useCompany`, `useCreateCompany`, and `useDeleteCompany` leveraging standard Query Keys mapping.
+- **Companies Table UI**: Installed shadcn Table and Skeleton components. Built `CompaniesTable` incorporating loading skeletons, error states, and empty states.
+- **Companies Search & Filters**: Built page-level client-side debounced search (`useDebounce`) wrapping the table, with placeholder UI for advanced filters and pagination.
+
 ---
 
 ## [v1.1.0-report-generation-streaming] - 2026-07-11
