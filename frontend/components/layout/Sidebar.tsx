@@ -18,7 +18,8 @@ export function Sidebar({ className }: SidebarProps) {
   const pathname = usePathname();
 
   return (
-    <div
+    <aside
+      aria-label="Main Navigation"
       className={cn(
         "hidden md:flex h-screen flex-col border-r border-white/10 bg-background/50 backdrop-blur-xl transition-all duration-300 shadow-[2px_0_15px_rgb(0,0,0,0.03)]",
         className
@@ -100,6 +101,6 @@ export function Sidebar({ className }: SidebarProps) {
           </div>
         </div>
       </ScrollArea>
-    </div>
+    </aside>
   );
 }
